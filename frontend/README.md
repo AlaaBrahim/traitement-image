@@ -1,30 +1,37 @@
-# React + TypeScript + Vite
+# Frontend Project Setup
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to the frontend project! This guide provides simple steps to set up the project and run the development server.
 
-Currently, two official plugins are available:
+## Requirements
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js (v14.18+)
+- npm (comes with Node.js)
 
-## Expanding the ESLint configuration
+## Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+1. Clone the repository to your local machine:
 
-- Configure the top-level `parserOptions` property like this:
+   ```bash
+   git clone https://github.com/AlaaBrahim/traitement-image
+   ```
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+2. Navigate to the frontend project directory:
+
+   ```bash
+   cd frontend
+   ```
+
+3. Install project dependencies:
+   ```bash
+   npm install
+   ```
+
+## Running the Development Server
+
+After installing the dependencies, start the development server with:
+
+```bash
+npm run dev
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+This command will start the server and open the application in your default browser. It usually runs on `http://localhost:5173`.
