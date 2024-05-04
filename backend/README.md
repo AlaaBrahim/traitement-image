@@ -1,3 +1,9 @@
+Add methods to `processing.py` and use them in main to better separate the code
+
+To test the upload method (example) open CMD and use this command: `curl -X POST http://localhost:8000/upload/ -F "imageUploaded=@C:\Users\Seef\Desktop\Traitement d'images\traitement-image\backend\sample_image.png"` (leave the parameter `imageUploaded` and change only the directory)
+
+To show the histogram: `curl -X GET http://localhost:8000/histogram/`
+
 # FastAPI Project Setup Guide
 
 Welcome to the FastAPI project! This guide will help you set up a Python virtual environment, install project dependencies, add new requirements to `requirements.txt`, and run the FastAPI server using Uvicorn.
