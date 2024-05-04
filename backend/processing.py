@@ -44,6 +44,19 @@ def plot_rgb_histogram(image):
 
 
 def detect_edges(image, threshold1 = 30, threshold2 = 100):
+    """
+    Pour détecter les contours dans une image, nous devons d'abord la convertir en niveaux de gris
+
+    Puis il y aura un calcul de gradient: Les contours sont souvent définis comme des changements significatifs 
+    dans les niveaux d'intensité de l'image. 
+    Pour détecter ces changements, la détection de contour utilise généralement des opérateurs de gradient,
+    tels que le gradient de Sobel ou le filtre de Laplace (filtres passe-haut). 
+
+    Ensuite, nous devons appliquer un seuillage pour convertir l'image en bitmap
+    où les pixels sont soit considérés comme appartenant à un contour, soit non. On doit donc specifier les seuils (thresholds)
+    """
+
+
     # Valeurs de seuil par défaut sont 30 et 100
     
     # Convertir les paramètres en int
