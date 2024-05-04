@@ -3,6 +3,7 @@ import {
   Book,
   Bot,
   Code2,
+  Download,
   LifeBuoy,
   Rabbit,
   Settings,
@@ -41,8 +42,10 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+import { useRef } from 'react';
 
 export function Dashboard() {
+  const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div className="grid h-screen w-full pl-[56px]">
       <TooltipProvider>
@@ -284,14 +287,26 @@ export function Dashboard() {
                 </form>
               </DrawerContent>
             </Drawer>
-            <Button
-              variant="outline"
-              size="sm"
-              className="ml-auto gap-1.5 text-sm"
-            >
-              <Share className="size-3.5" />
-              Share
-            </Button>
+            <div className="ml-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                className="m-1 gap-1.5 text-sm"
+                onClick={() => inputRef.current?.click()}
+              >
+                <input type="file" className="hidden" ref={inputRef} />
+                <Share className="size-3.5" />
+                Upload
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="m-1 gap-1.5 text-sm"
+              >
+                <Download className="size-3.5" />
+                Save
+              </Button>
+            </div>
           </header>
           <main className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
             <div
