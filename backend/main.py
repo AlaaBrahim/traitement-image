@@ -1,9 +1,12 @@
 from http.client import HTTPException
 from typing import Union
 from processing import plot_rgb_histogram
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query
+from PIL import Image, ImageEnhance, ImageTk
 import numpy as np
 import cv2
+
+
 
 app = FastAPI()
 image = None
@@ -56,6 +59,38 @@ async def get_histogram():
         plot_rgb_histogram(image)
         
         return {"message": "Histogramme affiché avec succès."}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+@app.get("/adjust_contrast/")
+async def adjust_contrast(contrast_level: float = Query(..., ge=0, le=100)):
+    try:
+        # Vérifier si l'image est chargée
+        if image is None:
+            raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
+        
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(contrast_level/50)
+        
+        return {"message": "Contraste ajusté avec succès."}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/adjust_luminance/")
+async def adjust_luminance(luminance_level: float = Query(..., ge=0, le=100)):
+    try:
+        # Vérifier si l'image est chargée
+        if image is None:
+            raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
+        
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(luminance_level/50)
+        
+        return {"message": "Luminance ajustée avec succès."}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
