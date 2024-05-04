@@ -44,8 +44,15 @@ import {
 } from '@/components/ui/tooltip';
 import { useRef } from 'react';
 
-export function Dashboard() {
+export function Dashboard({
+  setImageBase64,
+  imageBase64
+}: {
+  setImageBase64: (image: string) => void;
+  imageBase64: string;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
+
   return (
     <div className="grid h-screen w-full pl-[56px]">
       <TooltipProvider>
@@ -294,7 +301,21 @@ export function Dashboard() {
                 className="m-1 gap-1.5 text-sm"
                 onClick={() => inputRef.current?.click()}
               >
-                <input type="file" className="hidden" ref={inputRef} />
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={inputRef}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        setImageBase64(e.target?.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
                 <Share className="size-3.5" />
                 Upload
               </Button>
@@ -429,10 +450,7 @@ export function Dashboard() {
               </Badge>
               <div className="flex-1" />
               <div className="flex items-center justify-center h-full bg-muted/50 rounded-xl p-7">
-                <img
-                  src="https://source.unsplash.com/random"
-                  alt="Placeholder"
-                />
+                <img src={imageBase64} alt="Placeholder" />
               </div>
             </div>
           </main>
