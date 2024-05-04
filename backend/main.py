@@ -1,6 +1,6 @@
 from http.client import HTTPException
 from typing import Union
-from processing import plot_rgb_histogram
+from processing import plot_rgb_histogram, detect_edges
 from fastapi import FastAPI, File, UploadFile, HTTPException
 import numpy as np
 import cv2
@@ -47,6 +47,7 @@ async def upload_image(imageUploaded: UploadFile = File(...)):
 
 @app.get("/histogram/")
 async def get_histogram():
+
     try:
         # Vérifier si l'image est chargée
         if image is None:
@@ -56,6 +57,19 @@ async def get_histogram():
         plot_rgb_histogram(image)
         
         return {"message": "Histogramme affiché avec succès."}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/detect_edges/")
+async def get_edges(threshold1 = 30, threshold2 = 100):
+    global image
+    try:
+        if image is None:
+            raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
+        detect_edges(image, threshold1, threshold2)
+
+        return {"message":"Contours détectés avec succès."}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

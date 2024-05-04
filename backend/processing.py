@@ -41,3 +41,22 @@ def plot_rgb_histogram(image):
     plt.plot(hist_red, color='red', label='Canal Rouge')
     plt.legend()
     plt.show()
+
+
+def detect_edges(image, threshold1 = 30, threshold2 = 100):
+    # Valeurs de seuil par défaut sont 30 et 100
+    
+    # Convertir les paramètres en int
+    threshold1 = int(threshold1)
+    threshold2 = int(threshold2)
+
+    # Convertir l'image en niveaux de gris
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Appliquer l'opérateur de détection de contours Canny
+    edges = cv2.Canny(gray_image, threshold1=threshold1, threshold2=threshold2)
+
+    cv2.imshow("Edges Detected", edges)
+    cv2.waitKey(0)  # Wait for a key press to close the window
+    cv2.destroyAllWindows()  # Close all OpenCV windows
+    return edges
