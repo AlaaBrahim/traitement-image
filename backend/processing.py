@@ -1,6 +1,7 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 
 def calculate_histogram(image):
     """
@@ -73,3 +74,4 @@ def detect_edges(image, threshold1 = 30, threshold2 = 100):
     cv2.waitKey(0)  # Wait for a key press to close the window
     cv2.destroyAllWindows()  # Close all OpenCV windows
     return edges
+

@@ -1,4 +1,5 @@
 from http.client import HTTPException
+from io import BytesIO
 from typing import Union
 from image_processor import Base64ImageProcessor
 from processing import plot_rgb_histogram, detect_edges
@@ -7,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, ImageEnhance, ImageTk
 import numpy as np
 import cv2
+import base64
 
 
 
@@ -18,7 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 image = None
 
 @app.get("/")
@@ -33,9 +34,7 @@ def read_item(item_id: int, q: Union[str, None] = None):
 
 @app.post("/upload/")
 async def upload_image(imageUploaded: UploadFile = File(...)):
-
     global image
-
     try:
         # Lire l'image à partir de "imageUploaded" (passée en paramètre)
         contents = await imageUploaded.read()
@@ -45,13 +44,14 @@ async def upload_image(imageUploaded: UploadFile = File(...)):
         # Si image non trouvée, retourner erreur
         if decoded_image is None:
             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
-
+        
         # Affecter l'image décodée dans la variable globale image
         image = decoded_image
         return {"message": "Image téléchargée avec succès."}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.get("/histogram/")
@@ -70,6 +70,8 @@ async def get_histogram():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+
 @app.get("/detect_edges/")
 async def get_edges(threshold1 = 30, threshold2 = 100):
     global image
@@ -82,32 +84,66 @@ async def get_edges(threshold1 = 30, threshold2 = 100):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
 @app.get("/adjust_contrast/")
 async def adjust_contrast(contrast_level: float = Query(..., ge=0, le=100)):
+    global image
+
     try:
         # Vérifier si l'image est chargée
         if image is None:
             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
-        
-        enhancer = ImageEnhance.Contrast(image)
-        image = enhancer.enhance(contrast_level/50)
-        
-        return {"message": "Contraste ajusté avec succès."}
+
+        # Convert the image to a PIL Image object
+        pil_image = Image.fromarray(image)
+
+        # Adjust the contrast of the image
+        enhancer = ImageEnhance.Contrast(pil_image)
+        adjusted_image = enhancer.enhance(contrast_level / 50)
+
+        # Encode the adjusted image as a base64 string
+        buffered = BytesIO()
+        adjusted_image.save(buffered, format="PNG")
+        base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+
+        # Return the base64 encoded image in the response
+        return {
+            "message": "Contraste ajusté avec succès.",
+            "adjusted_image_base64": base64_image
+        }
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+
 @app.get("/adjust_luminance/")
 async def adjust_luminance(luminance_level: float = Query(..., ge=0, le=100)):
+    global image
     try:
-        # Vérifier si l'image est chargée
+         # Vérifier si l'image est chargée
         if image is None:
             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
-        
-        enhancer = ImageEnhance.Brightness(image)
-        image = enhancer.enhance(luminance_level/50)
-        
-        return {"message": "Luminance ajustée avec succès."}
+
+        # Convert the image to a PIL Image object
+        pil_image = Image.fromarray(image)
+
+        # Adjust the contrast of the image
+        enhancer = ImageEnhance.Brightness(pil_image)
+        adjusted_image = enhancer.enhance(luminance_level/50)
+
+        # Encode the adjusted image as a base64 string
+        buffered = BytesIO()
+        adjusted_image.save(buffered, format="PNG")
+        base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+        # Return the base64 encoded image in the response
+        return {
+            "message": "Luminance ajustée avec succès.",
+            "adjusted_image_base64": base64_image
+        }
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
