@@ -1,7 +1,8 @@
 from http.client import HTTPException
 from typing import Union
+from image_processor import Base64ImageProcessor
 from processing import plot_rgb_histogram, detect_edges
-from fastapi import FastAPI, File, UploadFile, HTTPException, Query
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Query
 from PIL import Image, ImageEnhance, ImageTk
 import numpy as np
 import cv2
@@ -105,3 +106,8 @@ async def adjust_luminance(luminance_level: float = Query(..., ge=0, le=100)):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/filter/greyscale")
+async def apply_greyscale_filter(base64_image: str = Form(...)):
+    processor = Base64ImageProcessor(base64_image)
+    return processor.convert_to_grayscale()
