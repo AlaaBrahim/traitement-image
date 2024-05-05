@@ -3,6 +3,7 @@ from typing import Union
 from image_processor import Base64ImageProcessor
 from processing import plot_rgb_histogram, detect_edges
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, ImageEnhance, ImageTk
 import numpy as np
 import cv2
@@ -10,6 +11,14 @@ import cv2
 
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Specify your frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 image = None
 
 @app.get("/")
@@ -31,10 +40,6 @@ async def upload_image(imageUploaded: UploadFile = File(...)):
         # Lire l'image à partir de "imageUploaded" (passée en paramètre)
         contents = await imageUploaded.read()
 
-        # Décoder l'image à partir du tampon mémoire contents en une image OpenCV:
-        # np.frombuffer(contents, np.uint8) crée un tableau NumPy à partir de contents,
-        # np.uint8 spécifie le type de données comme des entiers non signés de 8 bits (representation de l'image),
-        # cv2.IMREAD_COLOR indique que l'image doit être lue en RGB
         decoded_image = cv2.imdecode(np.frombuffer(contents, np.uint8), cv2.IMREAD_COLOR)
 
         # Si image non trouvée, retourner erreur
@@ -79,6 +84,8 @@ async def get_edges(threshold1 = 30, threshold2 = 100):
 
 @app.get("/adjust_contrast/")
 async def adjust_contrast(contrast_level: float = Query(..., ge=0, le=100)):
+    print("Contrast Level: ", contrast_level)
+    image = None
     try:
         # Vérifier si l'image est chargée
         if image is None:
