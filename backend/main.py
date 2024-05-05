@@ -84,8 +84,6 @@ async def get_edges(threshold1 = 30, threshold2 = 100):
 
 @app.get("/adjust_contrast/")
 async def adjust_contrast(contrast_level: float = Query(..., ge=0, le=100)):
-    print("Contrast Level: ", contrast_level)
-    image = None
     try:
         # Vérifier si l'image est chargée
         if image is None:

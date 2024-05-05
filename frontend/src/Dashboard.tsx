@@ -49,11 +49,39 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import { useRef } from 'react';
+import axios from 'axios';
+import { useEffect } from 'react';
+
 
 export function Dashboard() {
 
   const [imageBase64, setImageBase64] = useState<string>('');
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
+  
+  //  Fadi : hethi bch yab3th il value t3 il contrast each time t7arik il slider  
+  const [contrastLevel, setContrastLevel] = useState(50);
+
+   // Event handler for contrast slider change
+   const handleContrastChange = (value : any) => {
+    setContrastLevel(value);
+    sendContrastLevelToBackend(value[0]);
+  };
+
+  const sendContrastLevelToBackend = async (newContrastLevel: any) => {
+    const baseUrl = 'http://localhost:8000';
+      try {
+          const response = await axios.get( baseUrl +'/adjust_contrast/', {
+              params: {
+                  contrast_level: newContrastLevel,
+              },
+          });
+          console.log('Backend response:', response.config.params['contrast_level']);
+      } catch (error) {
+          console.error('Error sending contrast level:', error);
+      }
+  }; 
+  
+  // -------------------------------------------------------------
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -87,7 +115,12 @@ export function Dashboard() {
 
                   <div className="grid gap-3">
                     <Label htmlFor="Contrast">Contrast</Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
+                    <Slider
+                        value={[contrastLevel]} // Use the state as the value
+                        max={100}
+                        step={1}
+                        onValueChange={handleContrastChange} // Bind the event handler
+                    />
                   </div>
 
                   <div className="grid gap-3">
@@ -207,7 +240,12 @@ export function Dashboard() {
 
                   <div className="grid gap-3">
                     <Label htmlFor="Contrast">Contrast</Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
+                    <Slider
+                        value={[contrastLevel]} // Use the state as the value
+                        max={100}
+                        step={1}
+                        onValueChange={handleContrastChange} // Bind the event handler
+                    />
                   </div>
 
                   <div className="grid gap-3">
