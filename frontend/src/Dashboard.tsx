@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Bird,
   Book,
@@ -52,6 +53,10 @@ import { useRef } from 'react';
 import axios from 'axios';
 import { useEffect } from 'react';
 
+import Chart from 'chart.js/auto';
+
+import test from './';
+
 
 export function Dashboard() {
 
@@ -81,11 +86,13 @@ export function Dashboard() {
       }
   }; 
   
+  
   // -------------------------------------------------------------
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
+
     <div className="grid h-screen w-full pl-[56px]">
       <TooltipProvider>
 
