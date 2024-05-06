@@ -2,9 +2,10 @@ from http.client import HTTPException
 from io import BytesIO
 from typing import Union
 from image_processor import Base64ImageProcessor
-from processing import plot_rgb_histogram, detect_edges
+from processing import calculate_histogram, detect_edges
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from PIL import Image, ImageEnhance, ImageTk
 import numpy as np
 import cv2
@@ -20,7 +21,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-image = None
+
+IMAGE = None
 
 @app.get("/")
 def read_root():
@@ -32,21 +34,48 @@ def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
 
 
-@app.post("/upload/")
-async def upload_image(imageUploaded: UploadFile = File(...)):
-    global image
-    try:
-        # Lire l'image à partir de "imageUploaded" (passée en paramètre)
-        contents = await imageUploaded.read()
 
+
+# @app.post("/upload/")
+# async def upload_image(imageUploaded: UploadFile = File(...)):
+#     global image
+#     try:
+#         # Lire l'image à partir de "imageUploaded" (passée en paramètre)
+#         contents = await imageUploaded.read()
+
+#         decoded_image = cv2.imdecode(np.frombuffer(contents, np.uint8), cv2.IMREAD_COLOR)
+
+#         # Si image non trouvée, retourner erreur
+#         if decoded_image is None:
+#             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
+        
+#         # Affecter l'image décodée dans la variable globale image
+#         image = decoded_image
+#         return {"message": "Image téléchargée avec succès."}
+
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/upload/")
+async def upload_image(image: UploadFile = File(...)):
+    global IMAGE
+    try:
+        # Read the image content directly from the uploaded file
+        contents = await image.read()
+
+        # Save the image to a temporary file (optional)
+        # with open(f"temp/{image.filename}", "wb") as buffer:
+        #     buffer.write(contents)
+        #     image_path = f"temp/{image.filename}"
+
+        # Decode the image using cv2.imdecode (adjust as needed)
         decoded_image = cv2.imdecode(np.frombuffer(contents, np.uint8), cv2.IMREAD_COLOR)
 
-        # Si image non trouvée, retourner erreur
         if decoded_image is None:
             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
-        
-        # Affecter l'image décodée dans la variable globale image
-        image = decoded_image
+        IMAGE = decoded_image
+        print(IMAGE.shape)
+        # You can process or store the decoded_image here (optional)
         return {"message": "Image téléchargée avec succès."}
 
     except Exception as e:
@@ -56,15 +85,22 @@ async def upload_image(imageUploaded: UploadFile = File(...)):
 
 @app.get("/histogram/")
 async def get_histogram():
+
     try:
         # Vérifier si l'image est chargée
-        if image is None:
+        if IMAGE is None:
+            print("IMG = NONE")
             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
         
         # Afficher l'histogramme
-        plot_rgb_histogram(image)
+        hist_blue, hist_green, hist_red =  calculate_histogram(IMAGE)
+
+        # Return the histogram data as JSON
+        return JSONResponse(content={"hist_blue": hist_blue.tolist(),
+                                 "hist_green": hist_green.tolist(),
+                                 "hist_red": hist_red.tolist()})
         
-        return {"message": "Histogramme affiché avec succès."}
+        # return {"message": "Histogramme affiché avec succès."}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -72,14 +108,18 @@ async def get_histogram():
 
 
 @app.get("/detect_edges/")
-async def get_edges(threshold1 = 30, threshold2 = 100):
-    global image
+async def get_edges(threshold1: int = 30, threshold2: int = 100):
+    global IMAGE
     try:
-        if image is None:
+        if IMAGE is None:
             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
-        detect_edges(image, threshold1, threshold2)
+        edges = detect_edges(IMAGE, threshold1, threshold2)
+        # Convert edges to base64 string (optional)
+        _, buffer = cv2.imencode('.jpg', edges)
+        edges_base64 = base64.b64encode(buffer).decode('utf-8')
 
-        return {"message":"Contours détectés avec succès."}
+        return {"message": "Edges detected successfully.", "edges": edges_base64}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -87,15 +127,15 @@ async def get_edges(threshold1 = 30, threshold2 = 100):
 
 @app.get("/adjust_contrast/")
 async def adjust_contrast(contrast_level: float = Query(..., ge=0, le=100)):
-    global image
+    global IMAGE
 
     try:
         # Vérifier si l'image est chargée
-        if image is None:
+        if IMAGE is None:
             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
 
         # Convert the image to a PIL Image object
-        pil_image = Image.fromarray(image)
+        pil_image = Image.fromarray(IMAGE)
 
         # Adjust the contrast of the image
         enhancer = ImageEnhance.Contrast(pil_image)
@@ -120,14 +160,14 @@ async def adjust_contrast(contrast_level: float = Query(..., ge=0, le=100)):
 
 @app.get("/adjust_luminance/")
 async def adjust_luminance(luminance_level: float = Query(..., ge=0, le=100)):
-    global image
+    global IMAGE
     try:
          # Vérifier si l'image est chargée
-        if image is None:
+        if IMAGE is None:
             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
 
         # Convert the image to a PIL Image object
-        pil_image = Image.fromarray(image)
+        pil_image = Image.fromarray(IMAGE)
 
         # Adjust the contrast of the image
         enhancer = ImageEnhance.Brightness(pil_image)

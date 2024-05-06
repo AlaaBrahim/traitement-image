@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Bird,
   Book,
@@ -82,11 +83,13 @@ export function Dashboard() {
       }
   }; 
   
+  
   // -------------------------------------------------------------
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
+
     <div className="grid h-screen w-full pl-[56px]">
       <TooltipProvider>
 
