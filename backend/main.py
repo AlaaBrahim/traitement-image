@@ -56,7 +56,6 @@ async def upload_image(imageUploaded: UploadFile = File(...)):
 
 @app.get("/histogram/")
 async def get_histogram():
-
     try:
         # Vérifier si l'image est chargée
         if image is None:
