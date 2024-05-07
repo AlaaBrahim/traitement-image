@@ -67,6 +67,7 @@ export function Dashboard() {
 
    // Event handler for contrast slider change
    const handleContrastChange = (value : any) => {
+    console.log("triggered");
     setContrastLevel(value);
     sendContrastLevelToBackend(value[0]);
   };
@@ -322,10 +323,11 @@ export function Dashboard() {
                 // onDrop={handleDrop}
               >
                 <img
-                  src={imageBase64}
+                  src={originalImageBase64}
                   alt="Placeholder"
                   draggable={true}
                 />
+                
               </div>
             </div>
           </main>

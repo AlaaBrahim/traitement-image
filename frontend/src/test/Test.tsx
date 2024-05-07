@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
 import Chart from 'chart.js/auto';
 
 export function Test() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [histogramData, setHistogramData] = useState(null);
   const [edgesData, setEdgesData] = useState(null);
+  const [ContrastedImage, setContrastedImage] = useState(null);
   const [threshold1, setThreshold1] = useState(30);
   const [threshold2, setThreshold2] = useState(100);
   const [showEdges, setShowEdges] = useState(false);
+  const [contrastLevel, setContrastLevel] = useState(50);
   const chartInstance = useRef(null);
 
   const handleFileChange = (event) => {
@@ -113,6 +117,28 @@ export function Test() {
     }
   }, [showEdges, threshold1, threshold2]);
 
+  //  Fadi : hethi bch yab3th il value t3 il contrast each time t7arik il slider  
+
+   // Event handler for contrast slider change
+   const handleContrastChange = (value : any) => {
+    setContrastLevel(value);
+    sendContrastLevelToBackend(value[0]);
+  };
+
+  const sendContrastLevelToBackend = async (newContrastLevel: any) => {
+    const baseUrl = 'http://localhost:8000';
+      try {
+          const response = await axios.get( baseUrl +'/adjust_contrast/', {
+              params: {
+                  contrast_level: newContrastLevel,
+              },
+          });
+          setContrastedImage(response.data.adjusted_image_base64);
+      } catch (error) {
+          console.error('Error sending contrast level:', error);
+      }
+  }; 
+
   return (
     <div className="App">
       <h1>Image Upload, Histogram, and Edges Display</h1>
@@ -130,8 +156,23 @@ export function Test() {
             alt="Selected"
             width="200"
           />
+          
+           <img
+              src={`data:image/jpeg;base64,${ContrastedImage}`}
+              alt="ContrastedImage"
+            />
         </div>
       )}
+
+<div className="grid gap-3">
+                    <Label htmlFor="Contrast">Contrast</Label>
+                    <Slider
+                        value={[contrastLevel]} // Use the state as the value
+                        max={100}
+                        step={1}
+                        onValueChange={handleContrastChange} // Bind the event handler
+                    />
+                  </div>
       <div className="h-[500px] w-[600px]">
         <h2>{showEdges ? 'Edges' : 'Histogram'}</h2>
         <canvas id="histogramChart"></canvas>

@@ -21,6 +21,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 IMAGE = None
 
 @app.get("/")
@@ -79,7 +80,7 @@ async def upload_image(image: UploadFile = File(...)):
 
 @app.get("/histogram/")
 async def get_histogram():
-    print("GETTING HISTO")
+
     try:
         # Vérifier si l'image est chargée
         if IMAGE is None:
