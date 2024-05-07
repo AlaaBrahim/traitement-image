@@ -79,44 +79,40 @@ async def upload_image(image: UploadFile = File(...)):
 
 
 @app.get("/histogram/")
-async def get_histogram():
+# async def get_histogram(base64_image: str = Form(...)):
+async def get_histogram(base64_image: str = Form(...)):
+    # Read the contents of the file
+    # contents = await file.read()
+    
+    # Convert the contents to base64
+    # base64_image = base64.b64encode(contents).decode("utf-8")
+    # print(base64_image)
+    processor = Base64ImageProcessor(base64_image)
 
-    try:
-        # Vérifier si l'image est chargée
-        if IMAGE is None:
-            print("IMG = NONE")
-            raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
+    result = processor.calculate_histogram()
+
+    if isinstance(result, tuple):  # Check if it's a tuple (indicating 3 values)
+        hist_blue, hist_green, hist_red = result
+        # Handle the 3 values
+        print("Value 1:", value1)
+        print("Value 2:", value2)
+        print("Value 3:", value3)
         
-        # Afficher l'histogramme
-        hist_blue, hist_green, hist_red =  calculate_histogram(IMAGE)
-
-        # Return the histogram data as JSON
         return JSONResponse(content={"hist_blue": hist_blue.tolist(),
                                  "hist_green": hist_green.tolist(),
                                  "hist_red": hist_red.tolist()})
-        
-        # return {"message": "Histogramme affiché avec succès."}
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    else:
+        # Handle the single value
+        print("Single value:", result)
+        return JSONResponse(content={"hist": result.tolist()})
     
 
 
 @app.get("/detect_edges/")
-async def get_edges(threshold1: int = 30, threshold2: int = 100):
-    global IMAGE
-    try:
-        if IMAGE is None:
-            raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
-        edges = detect_edges(IMAGE, threshold1, threshold2)
-        # Convert edges to base64 string (optional)
-        _, buffer = cv2.imencode('.jpg', edges)
-        edges_base64 = base64.b64encode(buffer).decode('utf-8')
-
-        return {"message": "Edges detected successfully.", "edges": edges_base64}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+async def get_edges(base64_image: str = Form(...), threshold1: int = 30, threshold2: int = 100):
+    processor = Base64ImageProcessor(base64_image)
+    processor.detect_edges(threshold1, threshold2)
+    return {"message": "Filtre de edge detection appliqué avec succès.", "base64_image": processor.get_base64_image()}
 
 
 
