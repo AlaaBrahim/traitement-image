@@ -169,4 +169,6 @@ if __name__ == "__main__":
     # grayscale_base64_image = processor.convert_to_grayscale()
 
     # Afficher l'image en niveaux de gris encodée en base64
-    print(processor.get_base64_image())
+    # print(processor.get_base64_image())
+    # processor.detect_edges()
+    # processor.calculate_histogram()
