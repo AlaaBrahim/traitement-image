@@ -45,6 +45,10 @@ class Base64ImageProcessor:
         header = self.get_image_header()
         base64_str = f"{header},{base64_bytes.decode()}"
         return base64_str
+    
+    def get_base64_image(self):
+        self.base64_image = self.image_to_base64(self.image)
+        return self.base64_image
 
     # Obtenir le header de l'image base64 pour conserver le format
     def get_image_header(self):
@@ -164,9 +168,5 @@ if __name__ == "__main__":
     # Convertir l'image en niveaux de gris et obtenir la nouvelle chaîne base64
     # grayscale_base64_image = processor.convert_to_grayscale()
 
-    # # Afficher l'image en niveaux de gris encodée en base64
-    # print(grayscale_base64_image)
-
-    # processor.detect_edges()
-
-    processor.calculate_histogram()
+    # Afficher l'image en niveaux de gris encodée en base64
+    print(processor.get_base64_image())

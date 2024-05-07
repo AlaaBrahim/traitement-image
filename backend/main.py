@@ -186,4 +186,4 @@ async def adjust_luminance(luminance_level: float = Query(..., ge=0, le=100)):
 async def apply_grayscale_filter(base64_image: str = Form(...)):
     processor = Base64ImageProcessor(base64_image)
     processor.convert_to_grayscale()
-    return {"message": "Filtre de conversion en niveaux de gris appliqué avec succès.", "base64_image": processor.image_to_base64()}
+    return {"message": "Filtre de conversion en niveaux de gris appliqué avec succès.", "base64_image": processor.get_base64_image()}
