@@ -7,8 +7,7 @@ function App() {
   return (
     <>
       {/* <Test/> */}
-      <Test/>
-      {/* <Dashboard /> */}
+      <Dashboard/>
     </>
   );
 }
