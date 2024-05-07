@@ -57,6 +57,29 @@ export function Dashboard() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const saveImage = () => {
+    // Check if there is an image to save
+    if (!imageBase64) {
+      alert("No image to save.");
+      return;
+    }
+
+    // Convert the base64 image data to a blob
+    const byteString = atob(imageBase64.split(',')[1]);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([ab], { type: 'image/png' });
+
+    // Create a temporary link element to trigger the download
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'image.png';
+    link.click();
+  };
+
   return (
     <div className="grid h-screen w-full pl-[56px]">
       <TooltipProvider>
@@ -179,8 +202,10 @@ export function Dashboard() {
                 variant="outline"
                 size="sm"
                 className="m-1 gap-1.5 text-sm"
+                onClick={saveImage}
               >
                 <Download className="size-3.5" />
+                
                 Save
               </Button>
               <Button
