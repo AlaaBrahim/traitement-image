@@ -72,10 +72,9 @@ class Base64ImageProcessor:
         # Convertir le tableau numpy en image Pillow
         grayscale_image = Image.fromarray(gray_np, mode="L")
 
-        # Convertir l'image en niveaux de gris en base64
-        self.base64_image = self.image_to_base64(grayscale_image)
+        self.image = grayscale_image
         
-        return self.base64_image
+    
 
 # Test de la classe
 if __name__ == "__main__":
