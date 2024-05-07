@@ -53,8 +53,6 @@ import { useRef } from 'react';
 import axios from 'axios';
 import { useEffect } from 'react';
 
-import Chart from 'chart.js/auto';
-
 
 
 export function Dashboard() {
