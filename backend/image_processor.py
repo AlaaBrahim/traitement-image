@@ -2,6 +2,9 @@ import base64
 import numpy as np
 from PIL import Image
 from io import BytesIO
+import cv2
+
+
 
 # Classe qui permet de manipuler une image au format base64
 class Base64ImageProcessor:
@@ -41,6 +44,10 @@ class Base64ImageProcessor:
         header = self.get_image_header()
         base64_str = f"{header},{base64_bytes.decode()}"
         return base64_str
+    
+    def get_base64_image(self):
+        self.base64_image = self.image_to_base64(self.image)
+        return self.base64_image
 
     # Obtenir le header de l'image base64 pour conserver le format
     def get_image_header(self):
@@ -72,10 +79,70 @@ class Base64ImageProcessor:
         # Convertir le tableau numpy en image Pillow
         grayscale_image = Image.fromarray(gray_np, mode="L")
 
-        # Convertir l'image en niveaux de gris en base64
-        self.base64_image = self.image_to_base64(grayscale_image)
+        self.image = grayscale_image
+            
+    def calculate_histogram(self):
+        """
+        Une image BGR est représentée par une matrice de taille (hauteur, largeur, 3), 
+        où 3 représente les canaux de couleur (bleu, vert, rouge)
+        """
+        if self.image is None:
+            print("Impossible de lire l'image.")
+        # Séparer les canaux de couleur:
+        blue_channel = self.image[:,:,0]
+        green_channel = self.image[:,:,1]
+        red_channel = self.image[:,:,2]
         
-        return self.base64_image
+        # Initialiser l'histogramme pour chaque couleur
+        hist_blue = np.zeros(256)
+        hist_green = np.zeros(256)
+        hist_red = np.zeros(256)
+        
+        # Compter les occurrences de chaque intensité de lumière d'un pixel dans chaque canal
+        for i in range(self.image.shape[0]):
+            for j in range(self.image.shape[1]):
+                hist_blue[blue_channel[i,j]] += 1
+                hist_green[green_channel[i,j]] += 1
+                hist_red[red_channel[i,j]] += 1
+    
+        return hist_blue, hist_green, hist_red
+
+
+    def detect_edges(self, threshold1 = 30, threshold2 = 100):
+        """
+        Pour détecter les contours dans une image, nous devons d'abord la convertir en niveaux de gris
+
+        Puis il y aura un calcul de gradient: Les contours sont souvent définis comme des changements significatifs 
+        dans les niveaux d'intensité de l'image. 
+        Pour détecter ces changements, la détection de contour utilise généralement des opérateurs de gradient,
+        tels le filtre de Laplace (filtres passe-haut). 
+
+        Ensuite, nous devons appliquer un seuillage pour convertir l'image en bitmap
+        où les pixels sont soit considérés comme appartenant à un contour, soit non. On doit donc specifier les seuils (thresholds)
+        """
+
+
+        # Valeurs de seuil par défaut sont 30 et 100
+        
+        # # Convertir les paramètres en int
+        # threshold1 = int(threshold1)
+        # threshold2 = int(threshold2)
+
+        print("Threshold1:", threshold1)
+        print("Threshold2:", threshold2)
+
+        # Convertir l'image en niveaux de gris
+        gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        
+        # Appliquer l'opérateur de détection de contours Canny
+        edges = cv2.Canny(gray_image, threshold1=threshold1, threshold2=threshold2)
+
+        # cv2.imshow("Edges Detected", edges)
+        # cv2.waitKey(0)  # Wait for a key press to close the window
+        # cv2.destroyAllWindows()  # Close all OpenCV windows
+        return edges
+        
+    
 
 # Test de la classe
 if __name__ == "__main__":
@@ -89,4 +156,4 @@ if __name__ == "__main__":
     grayscale_base64_image = processor.convert_to_grayscale()
 
     # Afficher l'image en niveaux de gris encodée en base64
-    print(grayscale_base64_image)
+    print(processor.get_base64_image())

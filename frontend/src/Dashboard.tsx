@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Switch } from "@/components/ui/switch"
+import { Switch } from '@/components/ui/switch';
 
 import {
   Drawer,
@@ -28,15 +28,48 @@ import {
 import { useRef, useEffect } from 'react';
 import axios from 'axios';
 
+type Edit = {
+  adjustments: {
+    contrast: number;
+    brightness: number;
+    saturation: number;
+    hue: number;
+    gammaCorrection: number;
+  };
+  filters: {
+    grayscale: boolean;
+    averaging: number;
+    median: number;
+    minimum: number;
+    maximum: number;
+  };
+};
+
 import './Dashboard.css';
 
 export function Dashboard() {
-
   const [imageBase64, setImageBase64] = useState<string>('');
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
   const [printing, setPrinting] = useState<boolean>(false);
 
-  //  Fadi : hethi bch yab3th il value t3 il contrast each time t7arik il slider  
+  const [edits, setEdits] = useState<Edit>({
+    adjustments: {
+      contrast: 50,
+      brightness: 50,
+      saturation: 50,
+      hue: 50,
+      gammaCorrection: 50
+    },
+    filters: {
+      grayscale: false,
+      averaging: 0,
+      median: 0,
+      minimum: 0,
+      maximum: 0
+    }
+  });
+
+  //  Fadi : hethi bch yab3th il value t3 il contrast each time t7arik il slider
   const [contrastLevel, setContrastLevel] = useState(50);
 
   // Event handler for contrast slider change
@@ -51,15 +84,17 @@ export function Dashboard() {
     try {
       const response = await axios.get(baseUrl + '/adjust_contrast/', {
         params: {
-          contrast_level: newContrastLevel,
-        },
+          contrast_level: newContrastLevel
+        }
       });
-      console.log('Backend response:', response.config.params['contrast_level']);
+      console.log(
+        'Backend response:',
+        response.config.params['contrast_level']
+      );
     } catch (error) {
       console.error('Error sending contrast level:', error);
     }
   };
-
 
   // -------------------------------------------------------------
 
@@ -128,13 +163,10 @@ export function Dashboard() {
     
 
   return (
-
     <div className="grid h-screen w-full pl-[56px]">
       <TooltipProvider>
-
         <div className="flex flex-col">
           <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
-
             <h1 className="text-xl font-semibold">Adjust the Photo:</h1>
             <Drawer>
               <DrawerTrigger asChild>
@@ -155,7 +187,14 @@ export function Dashboard() {
                     <legend className="-ml-1 px-1 text-sm font-medium">
                       Photo Adjustments
                     </legend>
+                  <fieldset className="grid gap-6 rounded-lg border p-4">
+                    <legend className="-ml-1 px-1 text-sm font-medium">
+                      Photo Adjustments
+                    </legend>
 
+                    <div className="grid gap-3">
+                      <Label htmlFor="Contrast">Contrast</Label>
+                      <Slider
                     <div className="grid gap-3">
                       <Label htmlFor="Contrast">Contrast</Label>
                       <Slider
@@ -165,7 +204,13 @@ export function Dashboard() {
                         onValueChange={handleContrastChange} // Bind the event handler
                       />
                     </div>
+                      />
+                    </div>
 
+                    <div className="grid gap-3">
+                      <Label htmlFor="Brightness">Brightness</Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
+                    </div>
                     <div className="grid gap-3">
                       <Label htmlFor="Brightness">Brightness</Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
@@ -175,7 +220,15 @@ export function Dashboard() {
                       <Label htmlFor="Saturation ">Saturation </Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
+                    <div className="grid gap-3">
+                      <Label htmlFor="Saturation ">Saturation </Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
+                    </div>
 
+                    <div className="grid gap-3">
+                      <Label htmlFor="Hue ">Hue </Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
+                    </div>
                     <div className="grid gap-3">
                       <Label htmlFor="Hue ">Hue </Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
@@ -202,7 +255,15 @@ export function Dashboard() {
                         <p>Averaging </p>
                         <Switch />
                       </div>
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Averaging </p>
+                        <Switch />
+                      </div>
 
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Median </p>
+                        <Switch />
+                      </div>
                       <div className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <p>Median </p>
                         <Switch />
@@ -242,7 +303,6 @@ export function Dashboard() {
                       reader.onload = (e) => {
                         setImageBase64(e.target?.result as string);
                         setoriginalImageBase64(e.target?.result as string);
-
                       };
                       reader.readAsDataURL(file);
                     }
@@ -317,7 +377,6 @@ export function Dashboard() {
                     <Label htmlFor="Gamma Correction">Gamma Correction</Label>
                     <Slider defaultValue={[50]} max={100} step={1} />
                   </div>
-
                 </fieldset>
                 <fieldset className="grid gap-6 rounded-lg border p-4">
                   <legend className="-ml-1 px-1 text-sm font-medium">
@@ -341,17 +400,15 @@ export function Dashboard() {
                     </div>
 
                     <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Minimum  </p>
+                      <p>Minimum </p>
                       <Switch />
                     </div>
 
                     <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Maximum  </p>
+                      <p>Maximum </p>
                       <Switch />
                     </div>
-
                   </div>
-
                 </fieldset>
               </form>
             </div>
