@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 from io import BytesIO
 import cv2
+import matplotlib.pyplot as plt
 
 
 
@@ -82,12 +83,14 @@ class Base64ImageProcessor:
         Une image BGR est représentée par une matrice de taille (hauteur, largeur, 3), 
         où 3 représente les canaux de couleur (bleu, vert, rouge)
         """
-        if self.image is None:
+        image = np.array(self.image)
+
+        if image is None:
             print("Impossible de lire l'image.")
         # Séparer les canaux de couleur:
-        blue_channel = self.image[:,:,0]
-        green_channel = self.image[:,:,1]
-        red_channel = self.image[:,:,2]
+        blue_channel = image[:,:,0]
+        green_channel = image[:,:,1]
+        red_channel = image[:,:,2]
         
         # Initialiser l'histogramme pour chaque couleur
         hist_blue = np.zeros(256)
@@ -95,12 +98,20 @@ class Base64ImageProcessor:
         hist_red = np.zeros(256)
         
         # Compter les occurrences de chaque intensité de lumière d'un pixel dans chaque canal
-        for i in range(self.image.shape[0]):
-            for j in range(self.image.shape[1]):
+        for i in range(image.shape[0]):
+            for j in range(image.shape[1]):
                 hist_blue[blue_channel[i,j]] += 1
                 hist_green[green_channel[i,j]] += 1
                 hist_red[red_channel[i,j]] += 1
-    
+            # Afficher les histogrammes
+        plt.title("Histogramme des canaux de couleur")
+        plt.xlabel("i")
+        plt.ylabel("h(i)")
+        plt.plot(hist_blue, color='blue', label='Canal Bleu')
+        plt.plot(hist_green, color='green', label='Canal Vert')
+        plt.plot(hist_red, color='red', label='Canal Rouge')
+        plt.legend()
+        plt.show()
         return hist_blue, hist_green, hist_red
 
 
@@ -127,15 +138,17 @@ class Base64ImageProcessor:
         print("Threshold1:", threshold1)
         print("Threshold2:", threshold2)
 
+        image = np.array(self.image)
+
         # Convertir l'image en niveaux de gris
-        gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
         # Appliquer l'opérateur de détection de contours Canny
         edges = cv2.Canny(gray_image, threshold1=threshold1, threshold2=threshold2)
 
-        # cv2.imshow("Edges Detected", edges)
-        # cv2.waitKey(0)  # Wait for a key press to close the window
-        # cv2.destroyAllWindows()  # Close all OpenCV windows
+        cv2.imshow("Edges Detected", edges)
+        cv2.waitKey(0)  # Wait for a key press to close the window
+        cv2.destroyAllWindows()  # Close all OpenCV windows
         return edges
         
     
@@ -149,7 +162,11 @@ if __name__ == "__main__":
     processor = Base64ImageProcessor(sample_base64_image)
 
     # Convertir l'image en niveaux de gris et obtenir la nouvelle chaîne base64
-    grayscale_base64_image = processor.convert_to_grayscale()
+    # grayscale_base64_image = processor.convert_to_grayscale()
 
-    # Afficher l'image en niveaux de gris encodée en base64
-    print(grayscale_base64_image)
+    # # Afficher l'image en niveaux de gris encodée en base64
+    # print(grayscale_base64_image)
+
+    # processor.detect_edges()
+
+    processor.calculate_histogram()

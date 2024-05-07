@@ -26,7 +26,16 @@ def calculate_histogram(image):
             hist_blue[blue_channel[i,j]] += 1
             hist_green[green_channel[i,j]] += 1
             hist_red[red_channel[i,j]] += 1
- 
+    # print("hist_blue", hist_blue)
+        # Afficher les histogrammes
+    # plt.title("Histogramme des canaux de couleur")
+    # plt.xlabel("i")
+    # plt.ylabel("h(i)")
+    # plt.plot(hist_blue, color='blue', label='Canal Bleu')
+    # plt.plot(hist_green, color='green', label='Canal Vert')
+    # plt.plot(hist_red, color='red', label='Canal Rouge')
+    # plt.legend()
+    # plt.show()
     return hist_blue, hist_green, hist_red
 
 
