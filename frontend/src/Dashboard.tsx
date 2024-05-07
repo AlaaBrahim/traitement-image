@@ -1,21 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-  Bird,
-  Book,
-  Bot,
-  Code2,
   Download,
-  LifeBuoy,
-  Rabbit,
   Settings,
-  Settings2,
   Share,
-  SquareTerminal,
-  SquareUser,
-  Triangle,
-  Printer,
-  Turtle,
-  Image
+  Printer
 } from 'lucide-react';
 
 import { useState } from 'react';
@@ -33,37 +21,26 @@ import {
   DrawerTitle,
   DrawerTrigger
 } from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
+  TooltipProvider
 } from '@/components/ui/tooltip';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import axios from 'axios';
-import { useEffect } from 'react';
 
+import './Dashboard.css';
 
 export function Dashboard() {
 
   const [imageBase64, setImageBase64] = useState<string>('');
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
-  
+  const [printing, setPrinting] = useState<boolean>(false);
+
   //  Fadi : hethi bch yab3th il value t3 il contrast each time t7arik il slider  
   const [contrastLevel, setContrastLevel] = useState(50);
 
-   // Event handler for contrast slider change
-   const handleContrastChange = (value : any) => {
+  // Event handler for contrast slider change
+  const handleContrastChange = (value: any) => {
     console.log("triggered");
     setContrastLevel(value);
     sendContrastLevelToBackend(value[0]);
@@ -71,22 +48,45 @@ export function Dashboard() {
 
   const sendContrastLevelToBackend = async (newContrastLevel: any) => {
     const baseUrl = 'http://localhost:8000';
-      try {
-          const response = await axios.get( baseUrl +'/adjust_contrast/', {
-              params: {
-                  contrast_level: newContrastLevel,
-              },
-          });
-          console.log('Backend response:', response.config.params['contrast_level']);
-      } catch (error) {
-          console.error('Error sending contrast level:', error);
-      }
-  }; 
-  
-  
+    try {
+      const response = await axios.get(baseUrl + '/adjust_contrast/', {
+        params: {
+          contrast_level: newContrastLevel,
+        },
+      });
+      console.log('Backend response:', response.config.params['contrast_level']);
+    } catch (error) {
+      console.error('Error sending contrast level:', error);
+    }
+  };
+
+
   // -------------------------------------------------------------
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const printImage = () => {
+    // Check if there is an image to print
+    if (!imageBase64) {
+      alert("No image to print.");
+      return;
+    }
+  
+    // Create a new image element
+    const img = new Image();
+    img.src = imageBase64;
+  
+    // Add onload event handler
+    img.onload = () => {
+      // Open the print dialog after the image is fully loaded
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`<img src="${imageBase64}" alt="Print Image" />`);
+        printWindow.document.close();
+        printWindow.print();
+      }
+    };
+  };
 
   const saveImage = () => {
     // Check if there is an image to save
@@ -110,6 +110,22 @@ export function Dashboard() {
     link.download = 'image.png';
     link.click();
   };
+  
+    useEffect(() => {
+      // Cleanup function for event listeners
+      const handleBeforePrint = () => {
+        if (imageBase64) {
+          printImage();
+        }
+      };
+    
+      window.addEventListener('beforeprint', handleBeforePrint);
+    
+      return () => {
+        window.removeEventListener('beforeprint', handleBeforePrint);
+      };
+    }, [imageBase64]); // Re-run the effect when the image changes
+    
 
   return (
 
@@ -135,77 +151,77 @@ export function Dashboard() {
                   </DrawerDescription>
                 </DrawerHeader>
                 <form className="grid w-full items-start gap-6 overflow-auto p-4 pt-0">
-                <fieldset className="grid gap-6 rounded-lg border p-4">
-                  <legend className="-ml-1 px-1 text-sm font-medium">
-                    Photo Adjustments
-                  </legend>
+                  <fieldset className="grid gap-6 rounded-lg border p-4">
+                    <legend className="-ml-1 px-1 text-sm font-medium">
+                      Photo Adjustments
+                    </legend>
 
-                  <div className="grid gap-3">
-                    <Label htmlFor="Contrast">Contrast</Label>
-                    <Slider
+                    <div className="grid gap-3">
+                      <Label htmlFor="Contrast">Contrast</Label>
+                      <Slider
                         value={[contrastLevel]} // Use the state as the value
                         max={100}
                         step={1}
                         onValueChange={handleContrastChange} // Bind the event handler
-                    />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Brightness">Brightness</Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Saturation ">Saturation </Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Hue ">Hue </Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Gamma Correction">Gamma Correction</Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                </fieldset>
-                <fieldset className="grid gap-6 rounded-lg border p-4">
-                  <legend className="-ml-1 px-1 text-sm font-medium">
-                    Filters
-                  </legend>
-                  <div className="grid gap-3">
-                    <Label htmlFor="role">Choose Filters to be Applied</Label>
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Grayscale</p>
-                      <Switch />
+                      />
                     </div>
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Averaging </p>
-                      <Switch />
+                    <div className="grid gap-3">
+                      <Label htmlFor="Brightness">Brightness</Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Median </p>
-                      <Switch />
+                    <div className="grid gap-3">
+                      <Label htmlFor="Saturation ">Saturation </Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Minimum  </p>
-                      <Switch />
+                    <div className="grid gap-3">
+                      <Label htmlFor="Hue ">Hue </Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Maximum  </p>
-                      <Switch />
+                    <div className="grid gap-3">
+                      <Label htmlFor="Gamma Correction">Gamma Correction</Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
 
-                  </div>
+                  </fieldset>
+                  <fieldset className="grid gap-6 rounded-lg border p-4">
+                    <legend className="-ml-1 px-1 text-sm font-medium">
+                      Filters
+                    </legend>
+                    <div className="grid gap-3">
+                      <Label htmlFor="role">Choose Filters to be Applied</Label>
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Grayscale</p>
+                        <Switch />
+                      </div>
 
-                </fieldset>
-              </form>
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Averaging </p>
+                        <Switch />
+                      </div>
+
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Median </p>
+                        <Switch />
+                      </div>
+
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Minimum  </p>
+                        <Switch />
+                      </div>
+
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Maximum  </p>
+                        <Switch />
+                      </div>
+
+                    </div>
+
+                  </fieldset>
+                </form>
               </DrawerContent>
             </Drawer>
             <div className="ml-auto">
@@ -242,18 +258,23 @@ export function Dashboard() {
                 onClick={saveImage}
               >
                 <Download className="size-3.5" />
-                
+
                 Save
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 className="m-1 gap-1.5 text-sm"
+                onClick={printImage}
               >
                 <Printer className="size-3.5" />
                 Print
               </Button>
-              
+              {/* {printing && (
+                <div className="print-only">
+                  <img src={imageBase64} alt="Print Image" />
+                </div>
+              )} */}
             </div>
           </header>
           <main className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
@@ -270,10 +291,10 @@ export function Dashboard() {
                   <div className="grid gap-3">
                     <Label htmlFor="Contrast">Contrast</Label>
                     <Slider
-                        value={[contrastLevel]} // Use the state as the value
-                        max={100}
-                        step={1}
-                        onValueChange={handleContrastChange} // Bind the event handler
+                      value={[contrastLevel]} // Use the state as the value
+                      max={100}
+                      step={1}
+                      onValueChange={handleContrastChange} // Bind the event handler
                     />
                   </div>
 
@@ -341,15 +362,15 @@ export function Dashboard() {
               <div className="flex-1" />
               <div
                 className="flex items-center justify-center h-full bg-muted/50 rounded-xl p-7"
-                // onDragOver={handleDragOver}
-                // onDrop={handleDrop}
+              // onDragOver={handleDragOver}
+              // onDrop={handleDrop}
               >
                 <img
                   src={originalImageBase64}
                   alt="Placeholder"
                   draggable={true}
                 />
-                
+
               </div>
             </div>
           </main>
