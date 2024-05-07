@@ -187,14 +187,9 @@ export function Dashboard() {
                     <legend className="-ml-1 px-1 text-sm font-medium">
                       Photo Adjustments
                     </legend>
-                  <fieldset className="grid gap-6 rounded-lg border p-4">
-                    <legend className="-ml-1 px-1 text-sm font-medium">
-                      Photo Adjustments
-                    </legend>
+                  
 
-                    <div className="grid gap-3">
-                      <Label htmlFor="Contrast">Contrast</Label>
-                      <Slider
+                    
                     <div className="grid gap-3">
                       <Label htmlFor="Contrast">Contrast</Label>
                       <Slider
@@ -204,8 +199,7 @@ export function Dashboard() {
                         onValueChange={handleContrastChange} // Bind the event handler
                       />
                     </div>
-                      />
-                    </div>
+                    
 
                     <div className="grid gap-3">
                       <Label htmlFor="Brightness">Brightness</Label>
