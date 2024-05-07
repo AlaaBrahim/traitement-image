@@ -1,29 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  Bird,
-  Book,
-  Bot,
-  Code2,
-  Download,
-  LifeBuoy,
-  Rabbit,
-  Settings,
-  Settings2,
-  Share,
-  SquareTerminal,
-  SquareUser,
-  Triangle,
-  Printer,
-  Turtle,
-  Image
-} from 'lucide-react';
+import { Download, Settings, Share, Printer } from 'lucide-react';
 
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Switch } from "@/components/ui/switch"
+import { Switch } from '@/components/ui/switch';
 
 import {
   Drawer,
@@ -33,69 +16,84 @@ import {
   DrawerTitle,
   DrawerTrigger
 } from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useRef } from 'react';
 import axios from 'axios';
-import { useEffect } from 'react';
 
+type Edit = {
+  adjustments: {
+    contrast: number;
+    brightness: number;
+    saturation: number;
+    hue: number;
+    gammaCorrection: number;
+  };
+  filters: {
+    grayscale: boolean;
+    averaging: number;
+    median: number;
+    minimum: number;
+    maximum: number;
+  };
+};
 
 export function Dashboard() {
-
   const [imageBase64, setImageBase64] = useState<string>('');
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
-  
-  //  Fadi : hethi bch yab3th il value t3 il contrast each time t7arik il slider  
+  const [edits, setEdits] = useState<Edit>({
+    adjustments: {
+      contrast: 50,
+      brightness: 50,
+      saturation: 50,
+      hue: 50,
+      gammaCorrection: 50
+    },
+    filters: {
+      grayscale: false,
+      averaging: 0,
+      median: 0,
+      minimum: 0,
+      maximum: 0
+    }
+  });
+
+  //  Fadi : hethi bch yab3th il value t3 il contrast each time t7arik il slider
   const [contrastLevel, setContrastLevel] = useState(50);
 
-   // Event handler for contrast slider change
-   const handleContrastChange = (value : any) => {
-    console.log("triggered");
+  // Event handler for contrast slider change
+  const handleContrastChange = (value: any) => {
+    console.log('triggered');
     setContrastLevel(value);
     sendContrastLevelToBackend(value[0]);
   };
 
   const sendContrastLevelToBackend = async (newContrastLevel: any) => {
     const baseUrl = 'http://localhost:8000';
-      try {
-          const response = await axios.get( baseUrl +'/adjust_contrast/', {
-              params: {
-                  contrast_level: newContrastLevel,
-              },
-          });
-          console.log('Backend response:', response.config.params['contrast_level']);
-      } catch (error) {
-          console.error('Error sending contrast level:', error);
-      }
-  }; 
-  
-  
+    try {
+      const response = await axios.get(baseUrl + '/adjust_contrast/', {
+        params: {
+          contrast_level: newContrastLevel
+        }
+      });
+      console.log(
+        'Backend response:',
+        response.config.params['contrast_level']
+      );
+    } catch (error) {
+      console.error('Error sending contrast level:', error);
+    }
+  };
+
   // -------------------------------------------------------------
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-
     <div className="grid h-screen w-full pl-[56px]">
       <TooltipProvider>
-
         <div className="flex flex-col">
           <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
-
             <h1 className="text-xl font-semibold">Adjust the Photo:</h1>
             <Drawer>
               <DrawerTrigger asChild>
@@ -112,77 +110,74 @@ export function Dashboard() {
                   </DrawerDescription>
                 </DrawerHeader>
                 <form className="grid w-full items-start gap-6 overflow-auto p-4 pt-0">
-                <fieldset className="grid gap-6 rounded-lg border p-4">
-                  <legend className="-ml-1 px-1 text-sm font-medium">
-                    Photo Adjustments
-                  </legend>
+                  <fieldset className="grid gap-6 rounded-lg border p-4">
+                    <legend className="-ml-1 px-1 text-sm font-medium">
+                      Photo Adjustments
+                    </legend>
 
-                  <div className="grid gap-3">
-                    <Label htmlFor="Contrast">Contrast</Label>
-                    <Slider
+                    <div className="grid gap-3">
+                      <Label htmlFor="Contrast">Contrast</Label>
+                      <Slider
                         value={[contrastLevel]} // Use the state as the value
                         max={100}
                         step={1}
                         onValueChange={handleContrastChange} // Bind the event handler
-                    />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Brightness">Brightness</Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Saturation ">Saturation </Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Hue ">Hue </Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Gamma Correction">Gamma Correction</Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                </fieldset>
-                <fieldset className="grid gap-6 rounded-lg border p-4">
-                  <legend className="-ml-1 px-1 text-sm font-medium">
-                    Filters
-                  </legend>
-                  <div className="grid gap-3">
-                    <Label htmlFor="role">Choose Filters to be Applied</Label>
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Grayscale</p>
-                      <Switch />
+                      />
                     </div>
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Averaging </p>
-                      <Switch />
+                    <div className="grid gap-3">
+                      <Label htmlFor="Brightness">Brightness</Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Median </p>
-                      <Switch />
+                    <div className="grid gap-3">
+                      <Label htmlFor="Saturation ">Saturation </Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Minimum  </p>
-                      <Switch />
+                    <div className="grid gap-3">
+                      <Label htmlFor="Hue ">Hue </Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Maximum  </p>
-                      <Switch />
+                    <div className="grid gap-3">
+                      <Label htmlFor="Gamma Correction">Gamma Correction</Label>
+                      <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
+                  </fieldset>
+                  <fieldset className="grid gap-6 rounded-lg border p-4">
+                    <legend className="-ml-1 px-1 text-sm font-medium">
+                      Filters
+                    </legend>
+                    <div className="grid gap-3">
+                      <Label htmlFor="role">Choose Filters to be Applied</Label>
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Grayscale</p>
+                        <Switch />
+                      </div>
 
-                  </div>
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Averaging </p>
+                        <Switch />
+                      </div>
 
-                </fieldset>
-              </form>
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Median </p>
+                        <Switch />
+                      </div>
+
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Minimum </p>
+                        <Switch />
+                      </div>
+
+                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <p>Maximum </p>
+                        <Switch />
+                      </div>
+                    </div>
+                  </fieldset>
+                </form>
               </DrawerContent>
             </Drawer>
             <div className="ml-auto">
@@ -203,7 +198,6 @@ export function Dashboard() {
                       reader.onload = (e) => {
                         setImageBase64(e.target?.result as string);
                         setoriginalImageBase64(e.target?.result as string);
-
                       };
                       reader.readAsDataURL(file);
                     }
@@ -228,7 +222,6 @@ export function Dashboard() {
                 <Printer className="size-3.5" />
                 Print
               </Button>
-              
             </div>
           </header>
           <main className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
@@ -245,10 +238,10 @@ export function Dashboard() {
                   <div className="grid gap-3">
                     <Label htmlFor="Contrast">Contrast</Label>
                     <Slider
-                        value={[contrastLevel]} // Use the state as the value
-                        max={100}
-                        step={1}
-                        onValueChange={handleContrastChange} // Bind the event handler
+                      value={[contrastLevel]} // Use the state as the value
+                      max={100}
+                      step={1}
+                      onValueChange={handleContrastChange} // Bind the event handler
                     />
                   </div>
 
@@ -271,7 +264,6 @@ export function Dashboard() {
                     <Label htmlFor="Gamma Correction">Gamma Correction</Label>
                     <Slider defaultValue={[50]} max={100} step={1} />
                   </div>
-
                 </fieldset>
                 <fieldset className="grid gap-6 rounded-lg border p-4">
                   <legend className="-ml-1 px-1 text-sm font-medium">
@@ -295,17 +287,15 @@ export function Dashboard() {
                     </div>
 
                     <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Minimum  </p>
+                      <p>Minimum </p>
                       <Switch />
                     </div>
 
                     <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Maximum  </p>
+                      <p>Maximum </p>
                       <Switch />
                     </div>
-
                   </div>
-
                 </fieldset>
               </form>
             </div>
@@ -324,7 +314,6 @@ export function Dashboard() {
                   alt="Placeholder"
                   draggable={true}
                 />
-                
               </div>
             </div>
           </main>
