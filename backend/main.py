@@ -62,11 +62,6 @@ async def upload_image(image: UploadFile = File(...)):
         # Read the image content directly from the uploaded file
         contents = await image.read()
 
-        # Save the image to a temporary file (optional)
-        # with open(f"temp/{image.filename}", "wb") as buffer:
-        #     buffer.write(contents)
-        #     image_path = f"temp/{image.filename}"
-
         # Decode the image using cv2.imdecode (adjust as needed)
         decoded_image = cv2.imdecode(np.frombuffer(contents, np.uint8), cv2.IMREAD_COLOR)
 

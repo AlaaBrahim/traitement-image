@@ -55,7 +55,6 @@ import { useEffect } from 'react';
 
 import Chart from 'chart.js/auto';
 
-import test from './';
 
 
 export function Dashboard() {
