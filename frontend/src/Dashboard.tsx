@@ -46,7 +46,7 @@ type Edit = {
 };
 
 import './Dashboard.css';
-
+import { printImage, saveImage } from './ImageUtils';
 export function Dashboard() {
   const [imageBase64, setImageBase64] = useState<string>('');
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
@@ -100,57 +100,13 @@ export function Dashboard() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const printImage = () => {
-    // Check if there is an image to print
-    if (!imageBase64) {
-      alert("No image to print.");
-      return;
-    }
   
-    // Create a new image element
-    const img = new Image();
-    img.src = imageBase64;
-  
-    // Add onload event handler
-    img.onload = () => {
-      // Open the print dialog after the image is fully loaded
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`<img src="${imageBase64}" alt="Print Image" />`);
-        printWindow.document.close();
-        printWindow.print();
-      }
-    };
-  };
-
-  const saveImage = () => {
-    // Check if there is an image to save
-    if (!imageBase64) {
-      alert("No image to save.");
-      return;
-    }
-
-    // Convert the base64 image data to a blob
-    const byteString = atob(imageBase64.split(',')[1]);
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    const blob = new Blob([ab], { type: 'image/png' });
-
-    // Create a temporary link element to trigger the download
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'image.png';
-    link.click();
-  };
   
     useEffect(() => {
       // Cleanup function for event listeners
       const handleBeforePrint = () => {
         if (imageBase64) {
-          printImage();
+          printImage(imageBase64);
         }
       };
     
@@ -309,7 +265,7 @@ export function Dashboard() {
                 variant="outline"
                 size="sm"
                 className="m-1 gap-1.5 text-sm"
-                onClick={saveImage}
+                onClick={() => {saveImage(imageBase64)}}
               >
                 <Download className="size-3.5" />
 
@@ -319,7 +275,7 @@ export function Dashboard() {
                 variant="outline"
                 size="sm"
                 className="m-1 gap-1.5 text-sm"
-                onClick={printImage}
+                onClick={() => printImage(imageBase64)}
               >
                 <Printer className="size-3.5" />
                 Print
