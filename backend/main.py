@@ -34,28 +34,6 @@ def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
 
 
-
-
-# @app.post("/upload/")
-# async def upload_image(imageUploaded: UploadFile = File(...)):
-#     global image
-#     try:
-#         # Lire l'image à partir de "imageUploaded" (passée en paramètre)
-#         contents = await imageUploaded.read()
-
-#         decoded_image = cv2.imdecode(np.frombuffer(contents, np.uint8), cv2.IMREAD_COLOR)
-
-#         # Si image non trouvée, retourner erreur
-#         if decoded_image is None:
-#             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
-        
-#         # Affecter l'image décodée dans la variable globale image
-#         image = decoded_image
-#         return {"message": "Image téléchargée avec succès."}
-
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
 @app.post("/upload/")
 async def upload_image(image: UploadFile = File(...)):
     global IMAGE
@@ -80,26 +58,17 @@ async def upload_image(image: UploadFile = File(...)):
 
 @app.post("/histogram/")
 async def get_histogram(base64_image: str = Form(...)):
-    # Read the contents of the file
-    # contents = await file.read()
-    
-    # Convert the contents to base64
-    # base64_image = base64.b64encode(contents).decode("utf-8")
-    # print(base64_image)
-    print("HERE!")
     processor = Base64ImageProcessor(base64_image)
 
     result = processor.calculate_histogram()
 
-    if isinstance(result, tuple):  # Check if it's a tuple (indicating 3 values)
+    if isinstance(result, tuple):  # Check if it's a tuple (indicating 3 values) -> colored image
         hist_blue, hist_green, hist_red = result
         
         return JSONResponse(content={"hist_blue": hist_blue.tolist(),
                                  "hist_green": hist_green.tolist(),
                                  "hist_red": hist_red.tolist()})
-    else:
-        # Handle the single value
-        print("Single value:", result)
+    else: # if image is black and white
         return JSONResponse(content={"hist": result.tolist()})
     
 

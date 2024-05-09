@@ -46,9 +46,13 @@ export function Dashboard() {
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
   const [printing, setPrinting] = useState<boolean>(false);
 
+  /* EDGES*/
   const [edgesImage, setEdgesImage] = useState(null);
+  const [edgesData, setEdgesData] = useState(null);
   const [threshold1, setThreshold1] = useState(30);
   const [threshold2, setThreshold2] = useState(100);
+  const [showEdges, setShowEdges] = useState(false);
+  /* ____ */
 
   const [histogramData, setHistogramData] = useState(null);
   const [showHistogram, setShowHistogram] = useState(false);
@@ -99,7 +103,7 @@ export function Dashboard() {
     }
   };
 
-  // ------------ HISTOGRAM
+  // ------------ HISTOGRAM -----------------------------------------
 
   const handleHistogram = () => {
     const formData = new FormData();
@@ -133,46 +137,122 @@ export function Dashboard() {
           chartInstance.current.destroy();
         }
 
-        chartInstance.current = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: Array.from(Array(256).keys()),
-            datasets: [
-              {
-                label: 'Blue Channel',
-                data: histogramData.hist_blue,
-                backgroundColor: 'blue',
-                borderColor: 'blue'
-              },
-              {
-                label: 'Green Channel',
-                data: histogramData.hist_green,
-                backgroundColor: 'green',
-                borderColor: 'green'
-              },
-              {
-                label: 'Red Channel',
-                data: histogramData.hist_red,
-                backgroundColor: 'red',
-                borderColor: 'red'
-              }
-            ]
-          },
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true
+        // IF SHOW EDGES IS TOGGLED
+        if (showEdges == true) {
+          console.log('EDGES IS TOGGLED VRO');
+          chartInstance.current = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: Array.from(Array(256).keys()),
+              datasets: [
+                {
+                  label: 'Histogram',
+                  data: histogramData,
+                  backgroundColor: 'gray',
+                  borderColor: 'gray',
+                  barThickness: 'flex', // Set the bar thickness here
+                  categoryPercentage: 5.0 // Ensure the bars fill the whole category space
+                }
+              ]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
               }
             }
-          }
-        });
+          });
+        } else {
+          chartInstance.current = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: Array.from(Array(256).keys()),
+              datasets: [
+                {
+                  label: 'Blue Channel',
+                  data: histogramData.hist_blue,
+                  backgroundColor: 'blue',
+                  borderColor: 'blue'
+                },
+                {
+                  label: 'Green Channel',
+                  data: histogramData.hist_green,
+                  backgroundColor: 'green',
+                  borderColor: 'green'
+                },
+                {
+                  label: 'Red Channel',
+                  data: histogramData.hist_red,
+                  backgroundColor: 'red',
+                  borderColor: 'red'
+                }
+              ]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
+        }
       }
     }
   };
 
   useEffect(() => {
     renderHistogramChart();
-  }, [histogramData]);
+  }, [histogramData, showEdges]);
+
+  // ------------------ EGDE DETECTION --------------------------------------
+
+  const showEdgesData = () => {
+    const formData = new FormData();
+    formData.append('base64_image', imageBase64);
+    formData.append('threshold1', threshold1.toString());
+    formData.append('threshold2', threshold2.toString());
+    axios
+      .post('http://localhost:8000/detect_edges', formData)
+      .then((response) => {
+        setEdgesData(response.data);
+        setEdgesImage(response.data.base64_image);
+        /* Fetch histogram for edge image */
+        const formData2 = new FormData();
+        formData2.append('base64_image', edgesImage);
+
+        axios
+          .post('http://localhost:8000/histogram', formData2)
+          .then((histogramResponse) => {
+            console.log(histogramResponse.data.hist);
+            setHistogramData(histogramResponse.data.hist);
+            console.log('histogramdatra', histogramData);
+          })
+          .catch((error) => {
+            console.error(
+              'Error fetching histogram data for edge image:',
+              error
+            );
+          });
+      })
+      .catch((error) => {
+        console.error('Error fetching edges data:', error);
+      });
+  };
+
+  const toggleEdges = () => {
+    setShowEdges(!showEdges);
+  };
+
+  useEffect(() => {
+    if (showEdges) {
+      showEdgesData();
+    } else {
+      setEdgesData(null);
+      handleHistogram();
+    }
+  }, [showEdges, threshold1, threshold2]);
 
   // -------------------------------------------------------------
 
@@ -409,6 +489,44 @@ export function Dashboard() {
                       <Switch />
                     </div>
 
+                    {/*____v EDGES v____ */}
+                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <p>Toggle edges </p>
+                      <Switch onClick={toggleEdges} />
+                    </div>
+                    {showEdges && edgesData && (
+                      <div>
+                        <div className="ml-2 mt-1">
+                          <label>Threshold 1:</label>
+                          <label className="mx-2">{threshold1}</label>
+
+                          <input
+                            type="range"
+                            min="0"
+                            max="255"
+                            value={threshold1}
+                            onChange={(e) =>
+                              setThreshold1(parseInt(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div className="ml-2 mt-2">
+                          <label>Threshold 2:</label>
+                          <label className="mx-2">{threshold2}</label>
+                          <input
+                            type="range"
+                            min="0"
+                            max="255"
+                            value={threshold2}
+                            onChange={(e) =>
+                              setThreshold2(parseInt(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {/*_____ ^ EDGES ^ ______ */}
+
                     <div className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <p>Averaging </p>
                       <Switch />
@@ -428,6 +546,8 @@ export function Dashboard() {
                       <p>Maximum </p>
                       <Switch />
                     </div>
+                    {/*___ HISTOGRAM ____ */}
+
                     <div className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <p>Show histogram </p>
                       <Switch onClick={toggleShowHistogram} />
@@ -437,6 +557,7 @@ export function Dashboard() {
                         <canvas id="histogramChart"></canvas>
                       </div>
                     )}
+                    {/*_________________ */}
                   </div>
                 </fieldset>
               </form>
@@ -451,11 +572,15 @@ export function Dashboard() {
                 // onDragOver={handleDragOver}
                 // onDrop={handleDrop}
               >
-                <img
-                  src={originalImageBase64}
-                  alt="Placeholder"
-                  draggable={true}
-                />
+                {showEdges && edgesImage ? ( // Check if edge detection is enabled and edgesImage is available
+                  <img src={edgesImage} alt="Edged Image" draggable={true} />
+                ) : (
+                  <img
+                    src={originalImageBase64}
+                    alt="Original Image"
+                    draggable={true}
+                  />
+                )}
               </div>
             </div>
           </main>
