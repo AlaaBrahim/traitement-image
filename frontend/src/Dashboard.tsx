@@ -1,10 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  Download,
-  Settings,
-  Share,
-  Printer
-} from 'lucide-react';
+import { Download, Settings, Share, Printer } from 'lucide-react';
 
 import { useState } from 'react';
 
@@ -22,11 +17,10 @@ import {
   DrawerTrigger
 } from '@/components/ui/drawer';
 import { Label } from '@/components/ui/label';
-import {
-  TooltipProvider
-} from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useRef, useEffect } from 'react';
 import axios from 'axios';
+import Chart from 'chart.js/auto';
 
 type Edit = {
   adjustments: {
@@ -52,6 +46,15 @@ export function Dashboard() {
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
   const [printing, setPrinting] = useState<boolean>(false);
 
+  const [edgesImage, setEdgesImage] = useState(null);
+  const [threshold1, setThreshold1] = useState(30);
+  const [threshold2, setThreshold2] = useState(100);
+
+  const [histogramData, setHistogramData] = useState(null);
+  const [showHistogram, setShowHistogram] = useState(false);
+
+  const chartInstance = useRef(null);
+
   const [edits, setEdits] = useState<Edit>({
     adjustments: {
       contrast: 50,
@@ -74,7 +77,7 @@ export function Dashboard() {
 
   // Event handler for contrast slider change
   const handleContrastChange = (value: any) => {
-    console.log("triggered");
+    console.log('triggered');
     setContrastLevel(value);
     sendContrastLevelToBackend(value[0]);
   };
@@ -96,27 +99,99 @@ export function Dashboard() {
     }
   };
 
+  // ------------ HISTOGRAM
+
+  const handleHistogram = () => {
+    const formData = new FormData();
+    formData.append('base64_image', imageBase64);
+
+    axios
+      .post('http://localhost:8000/histogram', formData)
+      .then((response) => {
+        setHistogramData(response.data);
+        console.log(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching histogram data:', error);
+      });
+  };
+
+  const toggleShowHistogram = () => {
+    setShowHistogram(!showHistogram);
+    if (!showHistogram) {
+      handleHistogram();
+      renderHistogramChart();
+    }
+  };
+  const renderHistogramChart = () => {
+    if (histogramData) {
+      const canvas = document.getElementById('histogramChart');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+
+        if (chartInstance.current) {
+          chartInstance.current.destroy();
+        }
+
+        chartInstance.current = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: Array.from(Array(256).keys()),
+            datasets: [
+              {
+                label: 'Blue Channel',
+                data: histogramData.hist_blue,
+                backgroundColor: 'blue',
+                borderColor: 'blue'
+              },
+              {
+                label: 'Green Channel',
+                data: histogramData.hist_green,
+                backgroundColor: 'green',
+                borderColor: 'green'
+              },
+              {
+                label: 'Red Channel',
+                data: histogramData.hist_red,
+                backgroundColor: 'red',
+                borderColor: 'red'
+              }
+            ]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    renderHistogramChart();
+  }, [histogramData]);
+
   // -------------------------------------------------------------
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  
-  
-    useEffect(() => {
-      // Cleanup function for event listeners
-      const handleBeforePrint = () => {
-        if (imageBase64) {
-          printImage(imageBase64);
-        }
-      };
-    
-      window.addEventListener('beforeprint', handleBeforePrint);
-    
-      return () => {
-        window.removeEventListener('beforeprint', handleBeforePrint);
-      };
-    }, [imageBase64]); // Re-run the effect when the image changes
-    
+  useEffect(() => {
+    // Cleanup function for event listeners
+    const handleBeforePrint = () => {
+      if (imageBase64) {
+        printImage(imageBase64);
+      }
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+    };
+  }, [imageBase64]); // Re-run the effect when the image changes
 
   return (
     <div className="grid h-screen w-full pl-[56px]">
@@ -143,9 +218,7 @@ export function Dashboard() {
                     <legend className="-ml-1 px-1 text-sm font-medium">
                       Photo Adjustments
                     </legend>
-                  
 
-                    
                     <div className="grid gap-3">
                       <Label htmlFor="Contrast">Contrast</Label>
                       <Slider
@@ -155,7 +228,6 @@ export function Dashboard() {
                         onValueChange={handleContrastChange} // Bind the event handler
                       />
                     </div>
-                    
 
                     <div className="grid gap-3">
                       <Label htmlFor="Brightness">Brightness</Label>
@@ -188,7 +260,6 @@ export function Dashboard() {
                       <Label htmlFor="Gamma Correction">Gamma Correction</Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
-
                   </fieldset>
                   <fieldset className="grid gap-6 rounded-lg border p-4">
                     <legend className="-ml-1 px-1 text-sm font-medium">
@@ -220,17 +291,15 @@ export function Dashboard() {
                       </div>
 
                       <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <p>Minimum  </p>
+                        <p>Minimum </p>
                         <Switch />
                       </div>
 
                       <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <p>Maximum  </p>
+                        <p>Maximum </p>
                         <Switch />
                       </div>
-
                     </div>
-
                   </fieldset>
                 </form>
               </DrawerContent>
@@ -265,10 +334,11 @@ export function Dashboard() {
                 variant="outline"
                 size="sm"
                 className="m-1 gap-1.5 text-sm"
-                onClick={() => {saveImage(imageBase64)}}
+                onClick={() => {
+                  saveImage(imageBase64);
+                }}
               >
                 <Download className="size-3.5" />
-
                 Save
               </Button>
               <Button
@@ -281,10 +351,10 @@ export function Dashboard() {
                 Print
               </Button>
               {/* {printing && (
-                <div className="print-only">
-                  <img src={imageBase64} alt="Print Image" />
-                </div>
-              )} */}
+                  <div className="print-only">
+                    <img src={imageBase64} alt="Print Image" />
+                  </div>
+                )} */}
             </div>
           </header>
           <main className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
@@ -358,6 +428,15 @@ export function Dashboard() {
                       <p>Maximum </p>
                       <Switch />
                     </div>
+                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <p>Show histogram </p>
+                      <Switch onClick={toggleShowHistogram} />
+                    </div>
+                    {showHistogram && (
+                      <div>
+                        <canvas id="histogramChart"></canvas>
+                      </div>
+                    )}
                   </div>
                 </fieldset>
               </form>
@@ -369,15 +448,14 @@ export function Dashboard() {
               <div className="flex-1" />
               <div
                 className="flex items-center justify-center h-full bg-muted/50 rounded-xl p-7"
-              // onDragOver={handleDragOver}
-              // onDrop={handleDrop}
+                // onDragOver={handleDragOver}
+                // onDrop={handleDrop}
               >
                 <img
                   src={originalImageBase64}
                   alt="Placeholder"
                   draggable={true}
                 />
-
               </div>
             </div>
           </main>

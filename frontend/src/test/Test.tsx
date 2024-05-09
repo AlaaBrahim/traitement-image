@@ -9,6 +9,8 @@ export function Test() {
   const [histogramData, setHistogramData] = useState(null);
   const [edgesData, setEdgesData] = useState(null);
   const [ContrastedImage, setContrastedImage] = useState(null);
+  const [edgesImage, setEdgesImage] = useState(null);
+
   const [threshold1, setThreshold1] = useState(30);
   const [threshold2, setThreshold2] = useState(100);
   const [showEdges, setShowEdges] = useState(false);
@@ -27,6 +29,13 @@ export function Test() {
       .post('http://localhost:8000/upload/', formData)
       .then((response) => {
         alert(response.data.message);
+        // Read the uploaded file and convert it to base64
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const base64String = event.target.result;
+          setContrastedImage(base64String); // Store the base64 string in state
+        };
+        reader.readAsDataURL(selectedFile);
       })
       .catch((error) => {
         console.error('Error uploading image:', error);
@@ -34,8 +43,11 @@ export function Test() {
   };
 
   const showHistogram = () => {
+    const formData = new FormData();
+    formData.append('base64_image', ContrastedImage);
+
     axios
-      .get('http://localhost:8000/histogram')
+      .post('http://localhost:8000/histogram', formData)
       .then((response) => {
         setHistogramData(response.data);
       })
@@ -49,12 +61,16 @@ export function Test() {
   };
 
   const showEdgesData = () => {
+    const formData = new FormData();
+    formData.append('base64_image', ContrastedImage);
+    formData.append('threshold1', threshold1.toString());
+    formData.append('threshold2', threshold2.toString());
+    console.log(formData.get('threshold1'));
     axios
-      .get(
-        `http://localhost:8000/detect_edges?threshold1=${threshold1}&threshold2=${threshold2}`
-      )
+      .post('http://localhost:8000/detect_edges', formData)
       .then((response) => {
         setEdgesData(response.data);
+        setEdgesImage(response.data.base64_image);
       })
       .catch((error) => {
         console.error('Error fetching edges data:', error);
@@ -117,27 +133,24 @@ export function Test() {
     }
   }, [showEdges, threshold1, threshold2]);
 
-  //  Fadi : hethi bch yab3th il value t3 il contrast each time t7arik il slider  
-
-   // Event handler for contrast slider change
-   const handleContrastChange = (value : any) => {
+  // Event handler for contrast slider change
+  const handleContrastChange = (value) => {
     setContrastLevel(value);
     sendContrastLevelToBackend(value[0]);
   };
 
-  const sendContrastLevelToBackend = async (newContrastLevel: any) => {
+  const sendContrastLevelToBackend = async (newContrastLevel) => {
     const baseUrl = 'http://localhost:8000';
-      try {
-          const response = await axios.get( baseUrl +'/adjust_contrast/', {
-              params: {
-                  contrast_level: newContrastLevel,
-              },
-          });
-          setContrastedImage(response.data.adjusted_image_base64);
-      } catch (error) {
-          console.error('Error sending contrast level:', error);
-      }
-  }; 
+    try {
+      const response = await axios.post(baseUrl + '/adjust_contrast/', {
+        image: ContrastedImage,
+        contrast_level: newContrastLevel
+      });
+      setContrastedImage(response.data.adjusted_image_base64);
+    } catch (error) {
+      console.error('Error sending contrast level:', error);
+    }
+  };
 
   return (
     <div className="App">
@@ -151,28 +164,32 @@ export function Test() {
       {selectedFile && (
         <div>
           <h2>Selected Image:</h2>
-          <img
-            src={URL.createObjectURL(selectedFile)}
-            alt="Selected"
-            width="200"
-          />
           
-           <img
-              src={`data:image/jpeg;base64,${ContrastedImage}`}
-              alt="ContrastedImage"
-            />
-        </div>
+
+          {ContrastedImage && (
+            <div>
+              <img src={ContrastedImage} alt="ContrastedImage" />
+              {edgesImage && showEdges && (
+                <img
+                  src={edgesImage}
+                  alt="EdgesImage"
+                  style={{ position: 'absolute', top: 70, left: 0 }}
+                />
+              )}
+            </div>
+          )}
+        </div>  
       )}
 
-<div className="grid gap-3">
-                    <Label htmlFor="Contrast">Contrast</Label>
-                    <Slider
-                        value={[contrastLevel]} // Use the state as the value
-                        max={100}
-                        step={1}
-                        onValueChange={handleContrastChange} // Bind the event handler
-                    />
-                  </div>
+      <div className="grid gap-3">
+        <Label htmlFor="Contrast">Contrast</Label>
+        <Slider
+          value={[contrastLevel]} // Use the state as the value
+          max={100}
+          step={1}
+          onValueChange={handleContrastChange} // Bind the event handler
+        />
+      </div>
       <div className="h-[500px] w-[600px]">
         <h2>{showEdges ? 'Edges' : 'Histogram'}</h2>
         <canvas id="histogramChart"></canvas>

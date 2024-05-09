@@ -175,9 +175,9 @@ class Base64ImageProcessor:
 
         self.image = edges_image
 
-        cv2.imshow("Edges Detected", edges)
-        cv2.waitKey(0)  # Wait for a key press to close the window
-        cv2.destroyAllWindows()  # Close all OpenCV windows
+        # cv2.imshow("Edges Detected", edges)
+        # cv2.waitKey(0)  # Wait for a key press to close the window
+        # cv2.destroyAllWindows()  # Close all OpenCV windows
         return edges
         
     

@@ -78,8 +78,7 @@ async def upload_image(image: UploadFile = File(...)):
 
 
 
-@app.get("/histogram/")
-# async def get_histogram(base64_image: str = Form(...)):
+@app.post("/histogram/")
 async def get_histogram(base64_image: str = Form(...)):
     # Read the contents of the file
     # contents = await file.read()
@@ -87,16 +86,13 @@ async def get_histogram(base64_image: str = Form(...)):
     # Convert the contents to base64
     # base64_image = base64.b64encode(contents).decode("utf-8")
     # print(base64_image)
+    print("HERE!")
     processor = Base64ImageProcessor(base64_image)
 
     result = processor.calculate_histogram()
 
     if isinstance(result, tuple):  # Check if it's a tuple (indicating 3 values)
         hist_blue, hist_green, hist_red = result
-        # Handle the 3 values
-        print("Value 1:", value1)
-        print("Value 2:", value2)
-        print("Value 3:", value3)
         
         return JSONResponse(content={"hist_blue": hist_blue.tolist(),
                                  "hist_green": hist_green.tolist(),
@@ -108,8 +104,10 @@ async def get_histogram(base64_image: str = Form(...)):
     
 
 
-@app.get("/detect_edges/")
-async def get_edges(base64_image: str = Form(...), threshold1: int = 30, threshold2: int = 100):
+@app.post("/detect_edges/")
+async def get_edges(base64_image: str = Form(...), threshold1: str= Form(...), threshold2: str = Form(...)):
+    threshold1 = int(threshold1)
+    threshold2 = int(threshold2)
     processor = Base64ImageProcessor(base64_image)
     processor.detect_edges(threshold1, threshold2)
     return {"message": "Filtre de edge detection appliqué avec succès.", "base64_image": processor.get_base64_image()}
