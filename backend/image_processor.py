@@ -17,10 +17,10 @@ class Base64ImageProcessor:
         self.base64_image = base64_image
         self.image, self.image_format = self.base64_to_image(base64_image)
 
-        # np_image = np.array(self.image)
-        # self.min_r, self.max_r = np.min(np_image[:, :, 0]), np.max(np_image[:, :, 0])
-        # self.min_g, self.max_g = np.min(np_image[:, :, 1]), np.max(np_image[:, :, 1])
-        # self.min_b, self.max_b = np.min(np_image[:, :, 2]), np.max(np_image[:, :, 2])
+        np_image = np.array(self.image)
+        self.min_r, self.max_r = np.min(np_image[:, :, 0]), np.max(np_image[:, :, 0])
+        self.min_g, self.max_g = np.min(np_image[:, :, 1]), np.max(np_image[:, :, 1])
+        self.min_b, self.max_b = np.min(np_image[:, :, 2]), np.max(np_image[:, :, 2])
 
     # Convertir une chaîne de base64 en objet image
     def base64_to_image(self, base64_str):
@@ -69,37 +69,30 @@ class Base64ImageProcessor:
         # Ensure the clamping is done on an element-wise basis for numpy arrays
         return np.clip(value, min_value, max_value)  # Use np.clip to limit values between min and max
 
-    def contrast(self, value: float):
-        contrast_coefficient = value / 50
-        mean = 128
+    def contrast(self, value):
 
+        contrast_adjusted = (value / 100) * 510 - 255
         # Convert the image to a numpy array
+        img_array = np.array(self.image).astype(np.float32)
+
+        f = (259 * (contrast_adjusted + 255)) / (255 * (259 - contrast_adjusted))
+
+        for i in range(3):
+            img_array[:, :, i] = self.clamp(f * (img_array[:, :, i] - 128) + 128)
+
+        self.image = Image.fromarray(img_array.astype(np.uint8))
+
+    def luminance(self, value):
+        # Calculer l'ajustement de luminance
+        adjustment = value / 50
         img_array = np.array(self.image)
 
-        # Apply contrast adjustment to RGB channels (excluding alpha if present)
         for i in range(min(3, img_array.shape[2])):  # Ensure we don't exceed the channel bounds
-            img_array[:, :, i] = self.clamp((img_array[:, :, i] - mean) * contrast_coefficient + mean)
+            img_array[:, :, i] = self.clamp(img_array[:, :, i] * adjustment)
 
         # Convert back to PIL image
         self.image = Image.fromarray(img_array.astype(np.uint8))
-
-    def adjust_luminance(self, luminance_level: float):
-        # Calculer l'ajustement de luminance
-        adjustment = luminance_level / 50
         
-        # Parcourir chaque pixel de l'image et ajuster la luminance
-        for y in range(self.image.height):
-            for x in range(self.image.width):
-                # Récupérer la couleur du pixel
-                r, g, b, a = self.image.getpixel((x, y))
-                
-                # Ajuster la luminance de chaque composant de couleur
-                r = self.clamp(r * adjustment)
-                g = self.clamp(g * adjustment)
-                b = self.clamp(b * adjustment)
-                
-                # Mettre à jour la couleur du pixel
-                self.image.putpixel((x, y), (int(r), int(g), int(b), int(a)))
 
     # Convertir une image en niveaux de gris
     def grayscale(self):
