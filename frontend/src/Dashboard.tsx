@@ -22,6 +22,8 @@ import { useRef, useEffect } from 'react';
 import axios from 'axios';
 import Chart from 'chart.js/auto';
 
+
+
 type Edit = {
   adjustments: {
     contrast: number;
