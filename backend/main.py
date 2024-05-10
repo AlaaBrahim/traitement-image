@@ -46,6 +46,7 @@ async def upload_image(image: UploadFile = File(...)):
 
         if decoded_image is None:
             raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
+        
         IMAGE = decoded_image
         print(IMAGE.shape)
         # You can process or store the decoded_image here (optional)
@@ -82,65 +83,35 @@ async def get_edges(base64_image: str = Form(...), threshold1: str= Form(...), t
     return {"message": "Filtre de edge detection appliqué avec succès.", "base64_image": processor.get_base64_image()}
 
 
-
-@app.get("/adjust_contrast/")
-async def adjust_contrast(contrast_level: float = Query(..., ge=0, le=100)):
-    global IMAGE
-
+@app.post("/adjust_contrast/")
+async def adjust_contrast(base64_image: str = Form(...), contrast_level: str = Form(...)):
     try:
-        # Vérifier si l'image est chargée
-        if IMAGE is None:
-            raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
-
-        # Convert the image to a PIL Image object
-        pil_image = Image.fromarray(IMAGE)
-
-        # Adjust the contrast of the image
-        enhancer = ImageEnhance.Contrast(pil_image)
-        adjusted_image = enhancer.enhance(contrast_level / 50)
-
-        # Encode the adjusted image as a base64 string
-        buffered = BytesIO()
-        adjusted_image.save(buffered, format="PNG")
-        base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
-
+        # Assurez-vous d'utiliser les mêmes arguments dans la fonction
+        processor = Base64ImageProcessor(base64_image)
+        processor.adjust_contrast(float(contrast_level))
 
         # Return the base64 encoded image in the response
-        return {
+        return JSONResponse(content={
             "message": "Contraste ajusté avec succès.",
-            "adjusted_image_base64": base64_image
-        }
+            "adjusted_image_base64": processor.get_base64_image()
+        })
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
 
-
-@app.get("/adjust_luminance/")
-async def adjust_luminance(luminance_level: float = Query(..., ge=0, le=100)):
-    global IMAGE
+@app.post("/adjust_luminance/")
+async def adjust_luminance(base64_image: str = Form(...), luminance_level: str = Form(...)):
     try:
-         # Vérifier si l'image est chargée
-        if IMAGE is None:
-            raise HTTPException(status_code=404, detail="Impossible de lire l'image.")
-
-        # Convert the image to a PIL Image object
-        pil_image = Image.fromarray(IMAGE)
-
-        # Adjust the contrast of the image
-        enhancer = ImageEnhance.Brightness(pil_image)
-        adjusted_image = enhancer.enhance(luminance_level/50)
-
-        # Encode the adjusted image as a base64 string
-        buffered = BytesIO()
-        adjusted_image.save(buffered, format="PNG")
-        base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        # Assurez-vous d'utiliser les mêmes arguments dans la fonction
+        processor = Base64ImageProcessor(base64_image)
+        processor.adjust_luminance(float(luminance_level))
 
         # Return the base64 encoded image in the response
-        return {
+        return JSONResponse(content={
             "message": "Luminance ajustée avec succès.",
-            "adjusted_image_base64": base64_image
-        }
+            "adjusted_image_base64": processor.get_base64_image()
+        })
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

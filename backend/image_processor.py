@@ -2,6 +2,7 @@ import base64
 import numpy as np
 from PIL import Image
 from io import BytesIO
+from PIL import Image, ImageEnhance
 import cv2
 import matplotlib.pyplot as plt
 from scipy.ndimage import maximum_filter, median_filter, minimum_filter, uniform_filter
@@ -15,6 +16,11 @@ class Base64ImageProcessor:
     def __init__(self, base64_image):
         self.base64_image = base64_image
         self.image, self.image_format = self.base64_to_image(base64_image)
+
+        # np_image = np.array(self.image)
+        # self.min_r, self.max_r = np.min(np_image[:, :, 0]), np.max(np_image[:, :, 0])
+        # self.min_g, self.max_g = np.min(np_image[:, :, 1]), np.max(np_image[:, :, 1])
+        # self.min_b, self.max_b = np.min(np_image[:, :, 2]), np.max(np_image[:, :, 2])
 
     # Convertir une chaîne de base64 en objet image
     def base64_to_image(self, base64_str):
@@ -56,7 +62,49 @@ class Base64ImageProcessor:
     def get_image_header(self):
         # Extraire le header original de l'image base64
         header = self.base64_image.split(',')[0]
-        return header
+        return header 
+
+    def adjust_contrast(self, contrast_level: float):
+        # Convertir le contraste en un coefficient de contraste
+        contrast_coefficient = contrast_level / 50
+          
+        # Parcourir chaque pixel de l'image et ajuster le contraste
+        for y in range(self.image.height):
+            for x in range(self.image.width):
+                # Récupérer la couleur du pixel
+                r, g, b, a = self.image.getpixel((x, y))
+
+                # Ajuster le contraste de chaque composant de couleur
+                # r = self.clamp((255 / (self.max_r - self.min_r)) * (r - self.min_r) * contrast_coefficient)
+                # g = self.clamp((255 / (self.max_g - self.min_g)) * (g - self.min_g) * contrast_coefficient)
+                # b = self.clamp((255 / (self.max_b - self.min_b)) * (b - self.min_b) * contrast_coefficient)
+
+                mean = 128
+                
+                r = self.clamp((r - mean) * contrast_coefficient + mean)
+                g = self.clamp((g - mean) * contrast_coefficient + mean)
+                b = self.clamp((b - mean) * contrast_coefficient + mean)
+
+                # Mettre à jour la couleur du pixel
+                self.image.putpixel((x, y), (int(r), int(g), int(b), int(a)))
+
+    def adjust_luminance(self, luminance_level: float):
+        # Calculer l'ajustement de luminance
+        adjustment = luminance_level / 50
+        
+        # Parcourir chaque pixel de l'image et ajuster la luminance
+        for y in range(self.image.height):
+            for x in range(self.image.width):
+                # Récupérer la couleur du pixel
+                r, g, b, a = self.image.getpixel((x, y))
+                
+                # Ajuster la luminance de chaque composant de couleur
+                r = self.clamp(r * adjustment)
+                g = self.clamp(g * adjustment)
+                b = self.clamp(b * adjustment)
+                
+                # Mettre à jour la couleur du pixel
+                self.image.putpixel((x, y), (int(r), int(g), int(b), int(a)))
 
     # Convertir une image en niveaux de gris
     def grayscale(self):
