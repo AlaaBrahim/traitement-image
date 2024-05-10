@@ -45,9 +45,7 @@ export function Dashboard() {
 
   const chartInstance = useRef(null);
 
-  const [edits, setEdits] = useState<any>({});
-
-  // ------------ CONTRAST -----------------------------------------
+  const [edits, setEdits] = useState<object>({});
 
   useEffect(() => {
     // send the edits object as well as the originalImageBase64 to the backend, then update the imageBase64 with the new image
