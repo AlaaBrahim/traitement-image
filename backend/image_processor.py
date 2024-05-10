@@ -4,6 +4,8 @@ from PIL import Image
 from io import BytesIO
 import cv2
 import matplotlib.pyplot as plt
+from scipy.ndimage import maximum_filter, median_filter, minimum_filter, uniform_filter
+
 
 
 
@@ -57,7 +59,7 @@ class Base64ImageProcessor:
         return header
 
     # Convertir une image en niveaux de gris
-    def convert_to_grayscale(self):
+    def grayscale(self):
         # Convertir l'image en tableau numpy
         image_np = np.array(self.image)
 
@@ -179,6 +181,36 @@ class Base64ImageProcessor:
         # cv2.waitKey(0)  # Wait for a key press to close the window
         # cv2.destroyAllWindows()  # Close all OpenCV windows
         return edges
+    
+       # Appliquer un filtre maximum
+    def maximum(self, size=3):
+        image_np = np.array(self.image)
+        gray_np = maximum_filter(image_np, size=size)
+        filtered_image = Image.fromarray(gray_np)
+        self.image = filtered_image
+
+    # Appliquer un filtre médian
+    def median(self, size=3):
+        # Le filtre median necessite une image noir et blanc
+        self.grayscale()
+        image_np = np.array(self.image)
+        gray_np = median_filter(image_np, size=size)
+        filtered_image = Image.fromarray(gray_np)
+        self.image = filtered_image
+
+    # Appliquer un filtre minimum
+    def minimum(self, size=3):
+        image_np = np.array(self.image)
+        gray_np = minimum_filter(image_np, size=size)
+        filtered_image = Image.fromarray(gray_np)
+        self.image = filtered_image
+
+    # Appliquer un filtre moyen (uniforme)
+    def mean(self, size=3):
+        image_np = np.array(self.image)
+        gray_np = uniform_filter(image_np, size=size)
+        filtered_image = Image.fromarray(gray_np)
+        self.image = filtered_image
         
     
 
@@ -191,7 +223,7 @@ if __name__ == "__main__":
     processor = Base64ImageProcessor(sample_base64_image)
 
     # Convertir l'image en niveaux de gris et obtenir la nouvelle chaîne base64
-    # grayscale_base64_image = processor.convert_to_grayscale()
+    # grayscale_base64_image = processor.grayscale()
 
     # Afficher l'image en niveaux de gris encodée en base64
     # print(processor.get_base64_image())

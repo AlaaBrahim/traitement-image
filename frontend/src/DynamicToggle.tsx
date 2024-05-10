@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Switch } from '@/components/ui/switch';
+import { capitalizeFirstLetter } from './utils';
 
 export interface DynamicStatesProps {
   componentName: string; // Name of the component
@@ -7,7 +8,7 @@ export interface DynamicStatesProps {
   setEdits: (edits: object) => void; // Function to set the edits
 }
 
-export const DynamicToggleSlides: React.FC<DynamicStatesProps> = ({
+export const DynamicToggle: React.FC<DynamicStatesProps> = ({
   componentName,
   edits,
   setEdits
@@ -26,7 +27,7 @@ export const DynamicToggleSlides: React.FC<DynamicStatesProps> = ({
   return (
     <>
       <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-        <p>Toggle {componentName} </p>
+        <p>{capitalizeFirstLetter(componentName)} </p>
         <Switch
           onClick={() => {
             setToggeled(!toggeled);
@@ -37,4 +38,4 @@ export const DynamicToggleSlides: React.FC<DynamicStatesProps> = ({
   );
 };
 
-export default DynamicToggleSlides;
+export default DynamicToggle;

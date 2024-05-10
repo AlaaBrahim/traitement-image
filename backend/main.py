@@ -1,8 +1,8 @@
 from http.client import HTTPException
 from io import BytesIO
+import json
 from typing import Union
 from image_processor import Base64ImageProcessor
-from processing import calculate_histogram, detect_edges
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -150,3 +150,55 @@ async def apply_grayscale_filter(base64_image: str = Form(...)):
     processor = Base64ImageProcessor(base64_image)
     processor.convert_to_grayscale()
     return {"message": "Filtre de conversion en niveaux de gris appliqué avec succès.", "base64_image": processor.get_base64_image()}
+
+
+@app.post("/edit_image")
+async def apply_edits(base64_image: str = Form(...), edits: str = Form(...)):
+    json_edits = json.loads(edits)
+    for method_name, args in json_edits.items():
+        obj = Base64ImageProcessor(base64_image)
+        if 'enabled' not in args:
+            continue
+        if not args['enabled']:
+            continue
+        if hasattr(obj, method_name):
+            method = getattr(obj, method_name)
+            if callable(method):
+                args.pop('enabled')
+                args = {k.lower(): v for k, v in args.items()}
+                method(**args)
+                base64_image = obj.get_base64_image()
+    
+    # for edit in json_edits:
+    #     if edit == "grayscale":
+    #         if json_edits[edit]['enabled']:
+    #             processor = Base64ImageProcessor(base64_image)
+    #             processor.convert_to_grayscale()
+    #             base64_image = processor.get_base64_image()
+    #     elif edit == "maximum":
+    #         if json_edits[edit]['enabled']:
+    #             processor = Base64ImageProcessor(base64_image)
+    #             processor.apply_max_filter(json_edits[edit]['Size'])
+    #             base64_image = processor.get_base64_image()
+    #     elif edit == "edges":
+    #         if json_edits[edit]['enabled']:
+    #             processor = Base64ImageProcessor(base64_image)
+    #             processor.detect_edges()
+    #             base64_image = processor.get_base64_image()
+    #     elif edit == "histogram":
+    #         if json_edits[edit]['enabled']:
+    #             processor = Base64ImageProcessor(base64_image)
+    #             processor.calculate_histogram()
+    #             base64_image = processor.get_base64_image()
+    #     elif edit == "contrast":
+    #         if json_edits[edit]['enabled']:
+    #             processor = Base64ImageProcessor(base64_image)
+    #             processor.adjust_contrast()
+    #             base64_image = processor.get_base64_image()
+    #     elif edit == "luminance":
+    #         if json_edits[edit]['enabled']:
+    #             processor = Base64ImageProcessor(base64_image)
+    #             processor.adjust_luminance()
+    #             base64_image = processor.get_base64_image()
+        
+    return {"message": "Éditions appliquées avec succès.", "base64_image": base64_image}
