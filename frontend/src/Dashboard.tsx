@@ -26,6 +26,7 @@ import './Dashboard.css';
 import { printImage, saveImage } from './ImageUtils';
 import DynamicToggle from './DynamicToggle';
 import DynamicToggleSlides from './DynamicToggleSlides';
+import DynamicSlider from './DynamicSlider';
 export function Dashboard() {
   const [imageBase64, setImageBase64] = useState<string>('');
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
@@ -47,7 +48,6 @@ export function Dashboard() {
   const [edits, setEdits] = useState<any>({});
 
   // ------------ CONTRAST -----------------------------------------
-  const [contrastLevel, setContrastLevel] = useState(50);
 
   useEffect(() => {
     // send the edits object as well as the originalImageBase64 to the backend, then update the imageBase64 with the new image
@@ -65,30 +65,6 @@ export function Dashboard() {
     };
     sendEditsToBackend();
   }, [edits, originalImageBase64]);
-
-  // Event handler for contrast slider change
-  const handleContrastChange = (value: any) => {
-    console.log('triggered');
-    setContrastLevel(value);
-    sendContrastLevelToBackend(value[0]);
-  };
-
-  const sendContrastLevelToBackend = async (newContrastLevel: any) => {
-    const baseUrl = 'http://localhost:8000';
-    try {
-      const response = await axios.get(baseUrl + '/adjust_contrast/', {
-        params: {
-          contrast_level: newContrastLevel
-        }
-      });
-      console.log(
-        'Backend response:',
-        response.config.params['contrast_level']
-      );
-    } catch (error) {
-      console.error('Error sending contrast level:', error);
-    }
-  };
 
   // ------------ HISTOGRAM -----------------------------------------
 
@@ -286,15 +262,11 @@ export function Dashboard() {
                       Photo Adjustments
                     </legend>
 
-                    <div className="grid gap-3">
-                      <Label htmlFor="Contrast">Contrast</Label>
-                      <Slider
-                        value={[contrastLevel]} // Use the state as the value
-                        max={100}
-                        step={1}
-                        onValueChange={handleContrastChange} // Bind the event handler
-                      />
-                    </div>
+                    <DynamicSlider
+                      componentName="contrast"
+                      setEdits={setEdits}
+                      edits={edits}
+                    />
 
                     <div className="grid gap-3">
                       <Label htmlFor="Brightness">Brightness</Label>
@@ -305,7 +277,7 @@ export function Dashboard() {
                       <Label htmlFor="Saturation ">Saturation </Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
-               
+
                     <div className="grid gap-3">
                       <Label htmlFor="Hue ">Hue </Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
@@ -315,7 +287,6 @@ export function Dashboard() {
                       <Label htmlFor="Gamma Correction">Gamma Correction</Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
-
                   </fieldset>
 
                   <fieldset className="grid gap-6 rounded-lg border p-4">
@@ -408,7 +379,6 @@ export function Dashboard() {
                 <Printer className="size-3.5" />
                 Print
               </Button>
-            
             </div>
           </header>
           <main className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
@@ -422,15 +392,11 @@ export function Dashboard() {
                     Photo Adjustments
                   </legend>
 
-                  <div className="grid gap-3">
-                    <Label htmlFor="Contrast">Contrast</Label>
-                    <Slider
-                      value={[contrastLevel]} // Use the state as the value
-                      max={100}
-                      step={1}
-                      onValueChange={handleContrastChange} // Bind the event handler
-                    />
-                  </div>
+                  <DynamicSlider
+                    componentName="contrast"
+                    setEdits={setEdits}
+                    edits={edits}
+                  />
 
                   <div className="grid gap-3">
                     <Label htmlFor="Brightness">Brightness</Label>

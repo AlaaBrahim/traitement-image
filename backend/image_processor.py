@@ -63,10 +63,14 @@ class Base64ImageProcessor:
         # Extraire le header original de l'image base64
         header = self.base64_image.split(',')[0]
         return header 
+    
+    @staticmethod
+    def clamp(value):
+        return max(min(value, 255), 0)
 
-    def adjust_contrast(self, contrast_level: float):
+    def contrast(self, value: float):
         # Convertir le contraste en un coefficient de contraste
-        contrast_coefficient = contrast_level / 50
+        contrast_coefficient = value / 50
           
         # Parcourir chaque pixel de l'image et ajuster le contraste
         for y in range(self.image.height):

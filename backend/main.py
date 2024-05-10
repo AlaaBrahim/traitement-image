@@ -139,37 +139,5 @@ async def apply_edits(base64_image: str = Form(...), edits: str = Form(...)):
                 args = {k.lower(): v for k, v in args.items()}
                 method(**args)
                 base64_image = obj.get_base64_image()
-    
-    # for edit in json_edits:
-    #     if edit == "grayscale":
-    #         if json_edits[edit]['enabled']:
-    #             processor = Base64ImageProcessor(base64_image)
-    #             processor.convert_to_grayscale()
-    #             base64_image = processor.get_base64_image()
-    #     elif edit == "maximum":
-    #         if json_edits[edit]['enabled']:
-    #             processor = Base64ImageProcessor(base64_image)
-    #             processor.apply_max_filter(json_edits[edit]['Size'])
-    #             base64_image = processor.get_base64_image()
-    #     elif edit == "edges":
-    #         if json_edits[edit]['enabled']:
-    #             processor = Base64ImageProcessor(base64_image)
-    #             processor.detect_edges()
-    #             base64_image = processor.get_base64_image()
-    #     elif edit == "histogram":
-    #         if json_edits[edit]['enabled']:
-    #             processor = Base64ImageProcessor(base64_image)
-    #             processor.calculate_histogram()
-    #             base64_image = processor.get_base64_image()
-    #     elif edit == "contrast":
-    #         if json_edits[edit]['enabled']:
-    #             processor = Base64ImageProcessor(base64_image)
-    #             processor.adjust_contrast()
-    #             base64_image = processor.get_base64_image()
-    #     elif edit == "luminance":
-    #         if json_edits[edit]['enabled']:
-    #             processor = Base64ImageProcessor(base64_image)
-    #             processor.adjust_luminance()
-    #             base64_image = processor.get_base64_image()
         
     return {"message": "Éditions appliquées avec succès.", "base64_image": base64_image}
