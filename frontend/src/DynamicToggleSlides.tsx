@@ -18,15 +18,15 @@ export const DynamicToggleSlides: React.FC<DynamicStatesProps> = ({
   const stateNamesArray = stateNames.split(',').map((name) => name.trim());
 
   // Create a state object to hold all the states
-  const initialStates: { [key: string]: any } = {};
+  const initialStates: { [key: string]: number } = {};
   stateNamesArray.forEach((name) => {
-    initialStates[name] = ''; // Default value for each state
+    initialStates[name] = 0; // Default value for each state
   });
 
   const [states, setStates] = useState(initialStates);
 
   // Handler to update state based on the name and value
-  const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: number) => {
     setStates((prevStates) => ({
       ...prevStates,
       [name]: value
