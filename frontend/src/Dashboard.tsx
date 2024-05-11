@@ -113,7 +113,6 @@ export function Dashboard() {
       .post('http://localhost:8000/histogram', formData)
       .then((response) => {
         setHistogramData(response.data);
-        console.log(response.data);
       })
       .catch((error) => {
         console.error('Error fetching histogram data:', error);
@@ -225,9 +224,7 @@ export function Dashboard() {
         axios
           .post('http://localhost:8000/histogram', formData2)
           .then((histogramResponse) => {
-            console.log(histogramResponse.data.hist);
             setHistogramData(histogramResponse.data.hist);
-            console.log('histogramdatra', histogramData);
           })
           .catch((error) => {
             console.error(
