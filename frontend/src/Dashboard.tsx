@@ -98,8 +98,7 @@ export function Dashboard() {
         }
 
         // IF SHOW EDGES IS TOGGLED
-        if (showEdges == true) {
-          console.log('EDGES IS TOGGLED VRO');
+        if (histogramData.type === 'bw') {
           chartInstance.current = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -107,11 +106,11 @@ export function Dashboard() {
               datasets: [
                 {
                   label: 'Histogram',
-                  data: histogramData,
+                  data: histogramData.hist,
                   backgroundColor: 'gray',
                   borderColor: 'gray',
                   barThickness: 'flex', // Set the bar thickness here
-                  categoryPercentage: 5.0 // Ensure the bars fill the whole category space
+                  categoryPercentage: 4.0 // Ensure the bars fill the whole category space
                 }
               ]
             },
@@ -163,54 +162,12 @@ export function Dashboard() {
   };
 
   useEffect(() => {
+    handleHistogram();
+  }, [imageBase64]);
+
+  useEffect(()=>{
     renderHistogramChart();
-  }, [histogramData, showEdges]);
-
-  // ------------------ EGDE DETECTION --------------------------------------
-
-  const showEdgesData = () => {
-    const formData = new FormData();
-    formData.append('base64_image', imageBase64);
-    formData.append('threshold1', threshold1.toString());
-    formData.append('threshold2', threshold2.toString());
-    axios
-      .post('http://localhost:8000/detect_edges', formData)
-      .then((response) => {
-        setEdgesData(response.data);
-        setEdgesImage(response.data.base64_image);
-        /* Fetch histogram for edge image */
-        const formData2 = new FormData();
-        formData2.append('base64_image', edgesImage);
-
-        axios
-          .post('http://localhost:8000/histogram', formData2)
-          .then((histogramResponse) => {
-            setHistogramData(histogramResponse.data.hist);
-          })
-          .catch((error) => {
-            console.error(
-              'Error fetching histogram data for edge image:',
-              error
-            );
-          });
-      })
-      .catch((error) => {
-        console.error('Error fetching edges data:', error);
-      });
-  };
-
-  const toggleEdges = () => {
-    setShowEdges(!showEdges);
-  };
-
-  useEffect(() => {
-    if (showEdges) {
-      showEdgesData();
-    } else {
-      setEdgesData(null);
-      handleHistogram();
-    }
-  }, [showEdges, threshold1, threshold2]);
+  }, [histogramData])
 
   // -------------------------------------------------------------
 
@@ -425,43 +382,12 @@ export function Dashboard() {
                       setEdits={setEdits}
                     />
 
-                    {/*____v EDGES v____ */}
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Toggle edges </p>
-                      <Switch onClick={toggleEdges} />
-                    </div>
-                    {showEdges && edgesData && (
-                      <div>
-                        <div className="ml-2 mt-1">
-                          <label>Threshold 1:</label>
-                          <label className="mx-2">{threshold1}</label>
-
-                          <input
-                            type="range"
-                            min="0"
-                            max="255"
-                            value={threshold1}
-                            onChange={(e) =>
-                              setThreshold1(parseInt(e.target.value))
-                            }
-                          />
-                        </div>
-                        <div className="ml-2 mt-2">
-                          <label>Threshold 2:</label>
-                          <label className="mx-2">{threshold2}</label>
-                          <input
-                            type="range"
-                            min="0"
-                            max="255"
-                            value={threshold2}
-                            onChange={(e) =>
-                              setThreshold2(parseInt(e.target.value))
-                            }
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {/*_____ ^ EDGES ^ ______ */}
+                    <DynamicToggleSlides
+                      componentName="edges"
+                      edits={edits}
+                      setEdits={setEdits}
+                      stateNames="Threshold1, Threshold2"
+                    />
 
                     <DynamicToggleSlides
                       componentName="mean"

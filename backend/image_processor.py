@@ -17,10 +17,10 @@ class Base64ImageProcessor:
         self.base64_image = base64_image
         self.image, self.image_format = self.base64_to_image(base64_image)
 
-        np_image = np.array(self.image)
-        self.min_r, self.max_r = np.min(np_image[:, :, 0]), np.max(np_image[:, :, 0])
-        self.min_g, self.max_g = np.min(np_image[:, :, 1]), np.max(np_image[:, :, 1])
-        self.min_b, self.max_b = np.min(np_image[:, :, 2]), np.max(np_image[:, :, 2])
+        # np_image = np.array(self.image)
+        # self.min_r, self.max_r = np.min(np_image[:, :, 0]), np.max(np_image[:, :, 0])
+        # self.min_g, self.max_g = np.min(np_image[:, :, 1]), np.max(np_image[:, :, 1])
+        # self.min_b, self.max_b = np.min(np_image[:, :, 2]), np.max(np_image[:, :, 2])
 
     # Convertir une chaîne de base64 en objet image
     def base64_to_image(self, base64_str):
@@ -176,7 +176,7 @@ class Base64ImageProcessor:
             return histogram
 
 
-    def detect_edges(self, threshold1 = 30, threshold2 = 100):
+    def edges(self, threshold1 = 30, threshold2 = 100):
         """
         Pour détecter les contours dans une image, nous devons d'abord la convertir en niveaux de gris
 

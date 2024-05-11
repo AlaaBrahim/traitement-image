@@ -65,12 +65,12 @@ async def get_histogram(base64_image: str = Form(...)):
 
     if isinstance(result, tuple):  # Check if it's a tuple (indicating 3 values) -> colored image
         hist_blue, hist_green, hist_red = result
-        
         return JSONResponse(content={"hist_blue": hist_blue.tolist(),
                                  "hist_green": hist_green.tolist(),
-                                 "hist_red": hist_red.tolist()})
+                                 "hist_red": hist_red.tolist(), "type":"rgb"})
     else: # if image is black and white
-        return JSONResponse(content={"hist": result.tolist()})
+        result = [int(i) for i in result]
+        return JSONResponse(content={"hist": result, "type":"bw"})
     
 
 
