@@ -22,25 +22,11 @@ import { useRef, useEffect } from 'react';
 import axios from 'axios';
 import Chart from 'chart.js/auto';
 
-type Edit = {
-  adjustments: {
-    contrast: number;
-    brightness: number;
-    saturation: number;
-    hue: number;
-    gammaCorrection: number;
-  };
-  filters: {
-    grayscale: boolean;
-    averaging: number;
-    median: number;
-    minimum: number;
-    maximum: number;
-  };
-};
-
 import './Dashboard.css';
 import { printImage, saveImage } from './ImageUtils';
+import DynamicToggle from './DynamicToggle';
+import DynamicToggleSlides from './DynamicToggleSlides';
+import DynamicSlider from './DynamicSlider';
 export function Dashboard() {
   const [imageBase64, setImageBase64] = useState<string>('');
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
@@ -59,49 +45,24 @@ export function Dashboard() {
 
   const chartInstance = useRef(null);
 
-  const [edits, setEdits] = useState<Edit>({
-    adjustments: {
-      contrast: 50,
-      brightness: 50,
-      saturation: 50,
-      hue: 50,
-      gammaCorrection: 50
-    },
-    filters: {
-      grayscale: false,
-      averaging: 0,
-      median: 0,
-      minimum: 0,
-      maximum: 0
-    }
-  });
+  const [edits, setEdits] = useState<object>({});
 
-  //  Fadi : hethi bch yab3th il value t3 il contrast each time t7arik il slider
-  const [contrastLevel, setContrastLevel] = useState(50);
-
-  // Event handler for contrast slider change
-  const handleContrastChange = (value: any) => {
-    console.log('triggered');
-    setContrastLevel(value);
-    sendContrastLevelToBackend(value[0]);
-  };
-
-  const sendContrastLevelToBackend = async (newContrastLevel: any) => {
-    const baseUrl = 'http://localhost:8000';
-    try {
-      const response = await axios.get(baseUrl + '/adjust_contrast/', {
-        params: {
-          contrast_level: newContrastLevel
-        }
-      });
-      console.log(
-        'Backend response:',
-        response.config.params['contrast_level']
-      );
-    } catch (error) {
-      console.error('Error sending contrast level:', error);
-    }
-  };
+  useEffect(() => {
+    // send the edits object as well as the originalImageBase64 to the backend, then update the imageBase64 with the new image
+    const sendEditsToBackend = async () => {
+      const baseUrl = 'http://localhost:8000';
+      const formData = new FormData();
+      formData.append('base64_image', originalImageBase64);
+      formData.append('edits', JSON.stringify(edits));
+      try {
+        const response = await axios.post(baseUrl + '/edit_image', formData);
+        setImageBase64(response.data.base64_image);
+      } catch (error) {
+        console.error('Error sending edits:', error);
+      }
+    };
+    sendEditsToBackend();
+  }, [edits, originalImageBase64]);
 
   // ------------ HISTOGRAM -----------------------------------------
 
@@ -296,20 +257,12 @@ export function Dashboard() {
                       Photo Adjustments
                     </legend>
 
-                    <div className="grid gap-3">
-                      <Label htmlFor="Contrast">Contrast</Label>
-                      <Slider
-                        value={[contrastLevel]} // Use the state as the value
-                        max={100}
-                        step={1}
-                        onValueChange={handleContrastChange} // Bind the event handler
-                      />
-                    </div>
+                    <DynamicSlider
+                      componentName="contrast"
+                      setEdits={setEdits}
+                      edits={edits}
+                    />
 
-                    <div className="grid gap-3">
-                      <Label htmlFor="Brightness">Brightness</Label>
-                      <Slider defaultValue={[50]} max={100} step={1} />
-                    </div>
                     <div className="grid gap-3">
                       <Label htmlFor="Brightness">Brightness</Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
@@ -319,15 +272,7 @@ export function Dashboard() {
                       <Label htmlFor="Saturation ">Saturation </Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
-                    <div className="grid gap-3">
-                      <Label htmlFor="Saturation ">Saturation </Label>
-                      <Slider defaultValue={[50]} max={100} step={1} />
-                    </div>
 
-                    <div className="grid gap-3">
-                      <Label htmlFor="Hue ">Hue </Label>
-                      <Slider defaultValue={[50]} max={100} step={1} />
-                    </div>
                     <div className="grid gap-3">
                       <Label htmlFor="Hue ">Hue </Label>
                       <Slider defaultValue={[50]} max={100} step={1} />
@@ -338,44 +283,46 @@ export function Dashboard() {
                       <Slider defaultValue={[50]} max={100} step={1} />
                     </div>
                   </fieldset>
+
                   <fieldset className="grid gap-6 rounded-lg border p-4">
                     <legend className="-ml-1 px-1 text-sm font-medium">
                       Filters
                     </legend>
                     <div className="grid gap-3">
                       <Label htmlFor="role">Choose Filters to be Applied</Label>
-                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <p>Grayscale</p>
-                        <Switch />
-                      </div>
+                      <DynamicToggle
+                        componentName="grayscale"
+                        edits={edits}
+                        setEdits={setEdits}
+                      />
 
-                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <p>Averaging </p>
-                        <Switch />
-                      </div>
-                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <p>Averaging </p>
-                        <Switch />
-                      </div>
+                      <DynamicToggleSlides
+                        componentName="mean"
+                        edits={edits}
+                        setEdits={setEdits}
+                        stateNames="Size"
+                      />
 
-                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <p>Median </p>
-                        <Switch />
-                      </div>
-                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <p>Median </p>
-                        <Switch />
-                      </div>
+                      <DynamicToggleSlides
+                        componentName="median"
+                        edits={edits}
+                        setEdits={setEdits}
+                        stateNames="Size"
+                      />
 
-                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <p>Minimum </p>
-                        <Switch />
-                      </div>
+                      <DynamicToggleSlides
+                        componentName="minimum"
+                        edits={edits}
+                        setEdits={setEdits}
+                        stateNames="Size"
+                      />
 
-                      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <p>Maximum </p>
-                        <Switch />
-                      </div>
+                      <DynamicToggleSlides
+                        componentName="maximum"
+                        edits={edits}
+                        setEdits={setEdits}
+                        stateNames="Size"
+                      />
                     </div>
                   </fieldset>
                 </form>
@@ -427,11 +374,6 @@ export function Dashboard() {
                 <Printer className="size-3.5" />
                 Print
               </Button>
-              {/* {printing && (
-                  <div className="print-only">
-                    <img src={imageBase64} alt="Print Image" />
-                  </div>
-                )} */}
             </div>
           </header>
           <main className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
@@ -445,15 +387,11 @@ export function Dashboard() {
                     Photo Adjustments
                   </legend>
 
-                  <div className="grid gap-3">
-                    <Label htmlFor="Contrast">Contrast</Label>
-                    <Slider
-                      value={[contrastLevel]} // Use the state as the value
-                      max={100}
-                      step={1}
-                      onValueChange={handleContrastChange} // Bind the event handler
-                    />
-                  </div>
+                  <DynamicSlider
+                    componentName="contrast"
+                    setEdits={setEdits}
+                    edits={edits}
+                  />
 
                   <div className="grid gap-3">
                     <Label htmlFor="Brightness">Brightness</Label>
@@ -481,10 +419,11 @@ export function Dashboard() {
                   </legend>
                   <div className="grid gap-3">
                     <Label htmlFor="role">Choose Filters to be Applied</Label>
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Grayscale</p>
-                      <Switch />
-                    </div>
+                    <DynamicToggle
+                      componentName="grayscale"
+                      edits={edits}
+                      setEdits={setEdits}
+                    />
 
                     {/*____v EDGES v____ */}
                     <div className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -524,25 +463,33 @@ export function Dashboard() {
                     )}
                     {/*_____ ^ EDGES ^ ______ */}
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Averaging </p>
-                      <Switch />
-                    </div>
+                    <DynamicToggleSlides
+                      componentName="mean"
+                      edits={edits}
+                      setEdits={setEdits}
+                      stateNames="Size"
+                    />
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Median </p>
-                      <Switch />
-                    </div>
+                    <DynamicToggleSlides
+                      componentName="median"
+                      edits={edits}
+                      setEdits={setEdits}
+                      stateNames="Size"
+                    />
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Minimum </p>
-                      <Switch />
-                    </div>
+                    <DynamicToggleSlides
+                      componentName="minimum"
+                      edits={edits}
+                      setEdits={setEdits}
+                      stateNames="Size"
+                    />
 
-                    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <p>Maximum </p>
-                      <Switch />
-                    </div>
+                    <DynamicToggleSlides
+                      componentName="maximum"
+                      edits={edits}
+                      setEdits={setEdits}
+                      stateNames="Size"
+                    />
                     {/*___ HISTOGRAM ____ */}
 
                     <div className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -573,7 +520,7 @@ export function Dashboard() {
                   <img src={edgesImage} alt="Edged Image" draggable={true} />
                 ) : (
                   <img
-                    src={originalImageBase64}
+                    src={imageBase64}
                     alt="Original Image"
                     draggable={true}
                   />
