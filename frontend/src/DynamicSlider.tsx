@@ -14,7 +14,7 @@ export const DynamicSlider: React.FC<DynamicStatesProps> = ({
   edits,
   setEdits
 }) => {
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState(50);
   const [updated, setUpdated] = useState(false);
 
   useEffect(() => {

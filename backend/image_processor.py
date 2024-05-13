@@ -17,11 +17,6 @@ class Base64ImageProcessor:
         self.base64_image = base64_image
         self.image, self.image_format = self.base64_to_image(base64_image)
 
-        # np_image = np.array(self.image)
-        # self.min_r, self.max_r = np.min(np_image[:, :, 0]), np.max(np_image[:, :, 0])
-        # self.min_g, self.max_g = np.min(np_image[:, :, 1]), np.max(np_image[:, :, 1])
-        # self.min_b, self.max_b = np.min(np_image[:, :, 2]), np.max(np_image[:, :, 2])
-
     # Convertir une chaîne de base64 en objet image
     def base64_to_image(self, base64_str):
         # Extraire le header et la partie encodée de la chaîne base64
@@ -149,7 +144,7 @@ class Base64ImageProcessor:
                     hist_blue[blue_channel[i,j]] += 1
                     hist_green[green_channel[i,j]] += 1
                     hist_red[red_channel[i,j]] += 1
-                # Afficher les histogrammes
+            # Afficher les histogrammes
             # plt.title("Histogramme des canaux de couleur")
             # plt.xlabel("i")
             # plt.ylabel("h(i)")
@@ -189,21 +184,17 @@ class Base64ImageProcessor:
         où les pixels sont soit considérés comme appartenant à un contour, soit non. On doit donc specifier les seuils (thresholds)
         """
 
-
-        # Valeurs de seuil par défaut sont 30 et 100
-        
-        # # Convertir les paramètres en int
-        # threshold1 = int(threshold1)
-        # threshold2 = int(threshold2)
-
         print("Threshold1:", threshold1)
         print("Threshold2:", threshold2)
 
         image = np.array(self.image)
 
-        # Convertir l'image en niveaux de gris
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        
+        # Convertir l'image en niveaux de gris s'il ne l'est pas déjà
+        try:
+            gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        except:
+            gray_image=image
+            print("img already in grayscale")
         # Appliquer l'opérateur de détection de contours Canny
         edges = cv2.Canny(gray_image, threshold1=threshold1, threshold2=threshold2)
 

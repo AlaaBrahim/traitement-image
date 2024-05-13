@@ -5,7 +5,6 @@ import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 
 import {
@@ -30,15 +29,6 @@ import DynamicSlider from './DynamicSlider';
 export function Dashboard() {
   const [imageBase64, setImageBase64] = useState<string>('');
   const [originalImageBase64, setoriginalImageBase64] = useState<string>('');
-  const [printing, setPrinting] = useState<boolean>(false);
-
-  /* EDGES*/
-  const [edgesImage, setEdgesImage] = useState(null);
-  const [edgesData, setEdgesData] = useState(null);
-  const [threshold1, setThreshold1] = useState(30);
-  const [threshold2, setThreshold2] = useState(100);
-  const [showEdges, setShowEdges] = useState(false);
-  /* ____ */
 
   const [histogramData, setHistogramData] = useState(null);
   const [showHistogram, setShowHistogram] = useState(false);
@@ -110,7 +100,7 @@ export function Dashboard() {
                   backgroundColor: 'gray',
                   borderColor: 'gray',
                   barThickness: 'flex', // Set the bar thickness here
-                  categoryPercentage: 4.0 // Ensure the bars fill the whole category space
+                  categoryPercentage: 1.0 // Ensure the bars fill the whole category space
                 }
               ]
             },
@@ -165,9 +155,9 @@ export function Dashboard() {
     handleHistogram();
   }, [imageBase64]);
 
-  useEffect(()=>{
+  useEffect(() => {
     renderHistogramChart();
-  }, [histogramData])
+  }, [histogramData]);
 
   // -------------------------------------------------------------
 
@@ -220,25 +210,11 @@ export function Dashboard() {
                       edits={edits}
                     />
 
-                    <div className="grid gap-3">
-                      <Label htmlFor="Brightness">Brightness</Label>
-                      <Slider defaultValue={[50]} max={100} step={1} />
-                    </div>
-
-                    <div className="grid gap-3">
-                      <Label htmlFor="Saturation ">Saturation </Label>
-                      <Slider defaultValue={[50]} max={100} step={1} />
-                    </div>
-
-                    <div className="grid gap-3">
-                      <Label htmlFor="Hue ">Hue </Label>
-                      <Slider defaultValue={[50]} max={100} step={1} />
-                    </div>
-
-                    <div className="grid gap-3">
-                      <Label htmlFor="Gamma Correction">Gamma Correction</Label>
-                      <Slider defaultValue={[50]} max={100} step={1} />
-                    </div>
+                    <DynamicSlider
+                      componentName="luminance"
+                      setEdits={setEdits}
+                      edits={edits}
+                    />
                   </fieldset>
 
                   <fieldset className="grid gap-6 rounded-lg border p-4">
@@ -349,26 +325,11 @@ export function Dashboard() {
                     setEdits={setEdits}
                     edits={edits}
                   />
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Brightness">Brightness</Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Saturation ">Saturation </Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Hue ">Hue </Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
-
-                  <div className="grid gap-3">
-                    <Label htmlFor="Gamma Correction">Gamma Correction</Label>
-                    <Slider defaultValue={[50]} max={100} step={1} />
-                  </div>
+                  <DynamicSlider
+                    componentName="luminance"
+                    setEdits={setEdits}
+                    edits={edits}
+                  />
                 </fieldset>
                 <fieldset className="grid gap-6 rounded-lg border p-4">
                   <legend className="-ml-1 px-1 text-sm font-medium">
@@ -442,15 +403,7 @@ export function Dashboard() {
                 // onDragOver={handleDragOver}
                 // onDrop={handleDrop}
               >
-                {showEdges && edgesImage ? ( // Check if edge detection is enabled and edgesImage is available
-                  <img src={edgesImage} alt="Edged Image" draggable={true} />
-                ) : (
-                  <img
-                    src={imageBase64}
-                    alt="Original Image"
-                    draggable={true}
-                  />
-                )}
+                <img src={imageBase64} alt="Original Image" draggable={true} />
               </div>
             </div>
           </main>
