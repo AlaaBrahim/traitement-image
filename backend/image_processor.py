@@ -144,15 +144,7 @@ class Base64ImageProcessor:
                     hist_blue[blue_channel[i,j]] += 1
                     hist_green[green_channel[i,j]] += 1
                     hist_red[red_channel[i,j]] += 1
-            # Afficher les histogrammes
-            # plt.title("Histogramme des canaux de couleur")
-            # plt.xlabel("i")
-            # plt.ylabel("h(i)")
-            # plt.plot(hist_blue, color='blue', label='Canal Bleu')
-            # plt.plot(hist_green, color='green', label='Canal Vert')
-            # plt.plot(hist_red, color='red', label='Canal Rouge')
-            # plt.legend()
-            # plt.show()
+
             return hist_blue, hist_green, hist_red
         else: # IMAGE EN NOIR ET BLANC
 
@@ -162,12 +154,7 @@ class Base64ImageProcessor:
             # Calculer le nombre d'occurence de chaque valeur de pixel
             for pixel_value in image.flatten():
                 histogram[pixel_value] += 1
-            # plt.figure(figsize=(8, 6))
-            # plt.bar(np.arange(256), histogram, color='gray')
-            # plt.title('Histogram of Black and White Image')
-            # plt.xlabel('Pixel Value')
-            # plt.ylabel('Frequency')
-            # plt.show()
+
             return histogram
 
 
@@ -204,9 +191,6 @@ class Base64ImageProcessor:
 
         self.image = edges_image
 
-        # cv2.imshow("Edges Detected", edges)
-        # cv2.waitKey(0)  # Wait for a key press to close the window
-        # cv2.destroyAllWindows()  # Close all OpenCV windows
         return edges
     
        # Appliquer un filtre maximum
